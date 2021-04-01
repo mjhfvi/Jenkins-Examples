@@ -1,0 +1,12 @@
+pipeline {
+    agent any
+
+  stages {
+    stage('Awesomeness') {
+      steps {
+        echo 'Hello from Jenkins slave!'
+      }
+        }
+    }
+}
+
