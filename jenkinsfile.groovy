@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        GIT_REPO_URL    = "github.com/mjhfvi/DockerExamples.git"
+        GIT_REPO_URL    = "https://github.com/mjhfvi/DockerExamples.git"
         DOCKER_FILE     = dockerfile.nginx
+        STAGE_GIT_CLONE = "true"
     }
 
     parameters {
@@ -35,48 +36,54 @@ pipeline {
             echo helloWorld.sayHello('World')
         }
 
-        stage('Git Clone') {
+        stage('Git Clone') { when { expression { env.STAGE_GIT_CLONE.toBoolean() } } } {// && WindowsBuildStage == 'SUCCESS'
             steps {
-                git branch: 'main', credentialsId: 'github-credentials', url: https://${git_repo_url}
+                git branch: 'main', credentialsId: 'GitHub-Access-Credentials', url: '${env.GIT_REPO_URL}'
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t <repository-name>:<image-tag> -f ${docker_file}' // Adjust repository and tag
-            }
-        }
+    //     stage('Build Docker Image') {
+    //         steps {
+    //             timeout(time: 2, unit: 'MINUTES') {
+    //                 print("Docker Image Building for Windows")
+    //                 sh 'docker build -t <repository-name>:<image-tag> -f ${docker_file}' // Adjust repository and tag
+    //             }
+    //         }
+    //     }
 
-        stage('Push Docker Image') {
-            steps {
-                sh 'docker login -u <artifactory-username> -p <artifactory-token> <artifactory-url>'
-                sh 'docker push <repository-name>:<image-tag>'
-            }
-        }
+    //     stage('Push Docker Image') {
+    //         steps {
+    //             timeout(time: 2, unit: 'MINUTES') {
+    //                 sh 'docker login -u <artifactory-username> -p <artifactory-token> <artifactory-url>'
+    //                 sh 'docker push <repository-name>:<image-tag>'
+    //             }
+    //         }
+    //     }
 
-        stage('SonarQube Security Analysis') {
-            steps {
-                // Assuming SonarQube Scanner plugin is installed
-                sonarqubeScanner serverUrl: '<sonarqube-url>', token: '<sonarqube-token>', analysisMode: 'JVM', tasks: ['sonar:qualitygate:fail'] // Configure settings
-            }
-        }
+    //     stage('SonarQube Security Analysis') {
+    //         steps {
+    //             // Assuming SonarQube Scanner plugin is installed
+    //             sonarqubeScanner serverUrl: '<sonarqube-url>', token: '<sonarqube-token>', analysisMode: 'JVM', tasks: ['sonar:qualitygate:fail'] // Configure settings
+    //         }
+    //     }
 
-        stage('Post-Processing (Optional)') {
-            when {
-                expression {
-                    // Add conditions for running this stage based on security analysis results or other criteria
-                    return true // Replace with your logic
-                }
-            }
-            steps {
-                // Additional steps like sending notifications, deploying the image, etc.
-            }
-        }
-    }
+    //     stage('Post-Processing (Optional)') {
+    //         when {
+    //             expression {
+    //                 // Add conditions for running this stage based on security analysis results or other criteria
+    //                 return true // Replace with your logic
+    //             }
+    //         }
+    //         steps {
+    //             // Additional steps like sending notifications, deploying the image, etc.
+    //         }
+    //     }
+    // }
 
-    post {
-        always {
-            cleanWs() // Clean workspace after each run
+        post {
+            always {
+                cleanWs() // Clean workspace after each run
+            }
         }
     }
 }
