@@ -30,6 +30,11 @@ pipeline {
     }
 
     stages {
+
+        stage('Shared Libraries') {
+            echo helloWorld.sayHello('World')
+        }
+
         stage('Git Clone') {
             steps {
                 git branch: 'main', credentialsId: 'github-credentials', url: https://${git_repo_url}
