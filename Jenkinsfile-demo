@@ -21,7 +21,6 @@ pipeline {
         RUN_STAGE_CLEANUP="true"                                        // Cleanup Image Stage, use boolean expression true/false
         EMAIL_LIST_DEFAULT=""                           // Email Notification List
         TEAMS_URL=""
-        // TRIGGER_TOKEN="InstrumentServer_token"                       // Project Trigger Token from BitBucket
         CONSUL_IMAGE_ID=""                          // Consul K/V Name in QA Environment
     }
 

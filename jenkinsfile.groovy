@@ -1,10 +1,10 @@
 pipeline {
-    agent any
+    agent { label 'windows' }
 
     environment {
-        GIT_REPO_URL    = "https://github.com/mjhfvi/DockerExamples.git"
-        DOCKER_FILE     = dockerfile.nginx
-        STAGE_GIT_CLONE = "true"
+        GIT_REPO_URL    = 'https://github.com/mjhfvi/DockerExamples.git'
+        DOCKER_FILE     = 'dockerfile.nginx'
+        STAGE_GIT_CLONE = 'true'
     }
 
     parameters {
@@ -37,6 +37,7 @@ pipeline {
         }
 
         stage('Git Clone') { when { expression { env.STAGE_GIT_CLONE.toBoolean() } } } {// && WindowsBuildStage == 'SUCCESS'
+            currentBuild.description = 'GitClone'
             steps {
                 git branch: 'main', credentialsId: 'GitHub-Access-Credentials', url: '${env.GIT_REPO_URL}'
             }

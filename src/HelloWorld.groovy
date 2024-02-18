@@ -1,8 +1,7 @@
-// src/main/groovy/org/example/HelloWorld.groovy
-package org.example
+// vars/sayHello.groovy
 
-class HelloWorld {
-    def sayHello(String name) {
-        return "Hello, ${name}!"
-    }
+def call(String name = 'human') {
+    // Any valid steps can be called from this code, just like in other
+    // Scripted Pipeline
+    echo "Hello, ${name}."
 }
