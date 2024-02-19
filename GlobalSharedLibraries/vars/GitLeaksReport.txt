@@ -1,0 +1,3 @@
+https://github.com/gitleaks/gitleaks
+use GitLeaksReport() in pipeline in script() block
+you must install gitleaks

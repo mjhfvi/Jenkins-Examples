@@ -1,1 +1,10 @@
 HelloWorld Help File
+
+pipeline example:
+
+        stage('Shared Libraries') {
+            steps{
+                echo HelloWorld.sayHello('World')
+                HelloWorld()
+            }
+        }
