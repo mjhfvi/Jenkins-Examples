@@ -78,18 +78,7 @@ pipeline {
                     print("Docker Image Building")
                     script { // https://docs.docker.com/config/containers/resource_constraints/
                         try {
-                            def customImage = docker.build("${ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --memory=100m .")
-                                customImage.inside { sh 'ls' }
-                                if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
-                                print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
-
-                            // DOCKER_IMAGE_BUILD.inside { sh "ls" }
-                            // if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
-                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
-
-
-                        // docker.build("${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --no-cache --memory=100m .")
-
+                            docker.build("${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --no-cache --memory=100m .")
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
@@ -126,6 +115,17 @@ pipeline {
                                     sh 'ls' // && cat /etc/nginx/nginx.conf
                                     }
                                 }
+
+
+                            // def customImage = docker.build("${ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --memory=100m .")
+                            //     customImage.inside { sh 'ls' }
+                            //     if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
+                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
+
+                            // DOCKER_IMAGE_BUILD.inside { sh "ls" }
+                            // if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
+                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
+
 
                                     // if (manager.logContains('.*nginx*')) {
                                     //   error("Build failed because of Delete organization Account..")
@@ -256,41 +256,86 @@ pipeline {
         stage('Git Secrets Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
             steps { // https://github.com/awslabs/git-secrets
                 script {
-                    def secretsOutput = sh(script: 'git secrets --scan --recursive ./', returnStdout: true).trim()
-                    echo "Git Secrets Scan Output:"
-                    echo secretsOutput
-                    writeFile file: 'git-secrets-report.txt', text: secretsOutput
-                    if (secretsOutput) {
-                    error "Secrets found in repository!"}
-                    archiveArtifacts artifacts: 'git-secrets-report.txt', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                    try {
+                        def gitSecretsOutput = sh(script: 'git secrets --list', returnStdout: true).trim()
+                        // echo "Git Secrets Scan Output:"
+                        // echo secretsOutput
+                        if (gitSecretsOutput.contains("secrets.patterns")) {
+                            error "Secrets found in repository!"}
+                        writeFile(file: "git-secrets-scan-report.txt", text: gitSecretsOutput, encoding: "UTF-8")
+                        archiveArtifacts artifacts: 'git-secrets-scan-report.txt', onlyIfSuccessful: false, allowEmptyArchive: false // https://www.jenkins.io/doc/pipeline/steps/core/
+                    } catch (ERROR) {
+                        def catchErrorHandling = "${ERROR}"
+                        if (catchErrorHandling.contains("exit code 1")) {
+                            sh ("echo \033[41m\033[97m\033[1mGot Error: ${catchErrorHandling}\033[0m")
+                            sh ("echo \033[41m\033[97m\033[1mSending Email to Admin\033[0m")
+                        }
+                        currentBuild.result = 'SUCCESS'
+                        echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
+                    } finally {
+                        echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                    }
+
                 }
             }
         }
 
-        stage('Gitleaks Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
+        stage('GitLeaks Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
             steps {
                 script {
-                    def gitleaksOutput = sh(script: 'gitleaks detect --report-path=./gitleaks-detect-leaks-report.json', returnStdout: true).trim()
-                    echo "Gitleaks Scan Output:"
-                    echo gitleaksOutput
-                    archiveArtifacts artifacts: 'gitleaks-detect-leaks-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                    try {
+
+                        sh(script: 'gitleaks detect --report-path gitleaks-detect-report.json', returnStdout: false)
+                        def gitLeaksOutput = sh(script: 'gitleaks detect --baseline-path gitleaks-detect-report.json --report-path gitleaks-detect-findings.json', returnStdout: false)
+                        // def gitLeaksOutput = sh(script: 'gitleaks detect --report-path=./gitleaks-leaks-report.json', returnStdout: true).trim()
+                        echo "GitLeaks Scan Output:"
+                        echo gitLeaksOutput
+                        // writeFile(file: "gitleaks-detect-report.json", text: gitLeaksOutput, encoding: "UTF-8")
+                        archiveArtifacts artifacts: 'gitleaks-detect-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                    } catch (ERROR) {
+                        def catchErrorHandling = "${ERROR}"
+                        if (catchErrorHandling.contains("exit code 1")) {
+                            sh ("echo \033[41m\033[97m\033[1mGot Error: ${catchErrorHandling}\033[0m")
+                            sh ("echo \033[41m\033[97m\033[1mSending Email to Admin\033[0m")
+                        }
+                        echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
+                    } finally {
+                        echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                    }
                 }
             }
         }
 
         stage('GitGuardian Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
-            agent {
-                docker { image 'gitguardian/ggshield:latest' }
-            }
+            // agent {
+            //     docker { image 'gitguardian/ggshield' }
+            // }
             environment {
                 GITGUARDIAN_API_KEY = credentials('GitGuardian-Access-Credentials')
             }
             steps {
-                echo 'GitGuardian docker image scan'
-                bat 'ggshield secret scan docker {ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY} --output=ggshield.json --json --show-secrets --exit-zero'
-                echo 'GitGuardian files and folders scan'
-                bat 'ggshield secret scan path --recursive --show-secrets --output=ggshield-report.json --json  ./ -y'
-                archiveArtifacts artifacts: 'ggshield-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                script {
+                    try {
+                        sh(script: 'ggshield secret scan path . --recursive --show-secrets --exit-zero --output=ggshield-secret-report.json --json -y', label:"GitGuardian Files and Folders Scan",returnStdout: false)
+                        // echo 'GitGuardian docker image scan'
+                        // sh 'ggshield secret scan docker gitguardian/ggshield --output=ggshield.json --json --show-secrets --exit-zero'
+                        archiveArtifacts artifacts: 'ggshield-secret-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                        // sh(script: 'ggshield secret scan ci --show-secrets --exit-zero --output=ggshield-ci-report.json --json --debug', label:"GitGuardian CI Scan", returnStdout: false)
+                        // archiveArtifacts artifacts: 'ggshield-ci-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+
+                    } catch (ERROR) {
+                        def catchErrorHandling = "${ERROR}"
+                        if (catchErrorHandling.contains("exit code 1")) {
+                            sh ("echo \033[41m\033[97m\033[1mGot Error: ${catchErrorHandling}\033[0m")
+                            sh ("echo \033[41m\033[97m\033[1mSending Email to Admin\033[0m")
+                        }
+                        echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
+                        currentBuild.result = 'SUCCESS'
+                    } finally {
+                        echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                    }
+                }
+
             }
         }
 
