@@ -11,6 +11,7 @@ pipeline {
         STAGE_TEST_DOCKER_IMAGE             = "true"
         STAGE_PUSH_IMAGE_TO_ARTIFACTORY     = "false"
         STAGE_PUBLISH_BUILD_ARTIFACTORY_INFO  = "false"
+        STAGE_SECURITY_TESTS                = "true"
         ARTIFACTORY_SERVER                  = "192.168.50.50:8082"
 
     }
@@ -50,7 +51,7 @@ pipeline {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
                         } finally {
-                            echo "\033[42m\033[97m=====================Step ${env.STAGE_NAME} Done=====================\033[0m"
+                            echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                         }
                     }
                 }
@@ -77,13 +78,23 @@ pipeline {
                     print("Docker Image Building")
                     script { // https://docs.docker.com/config/containers/resource_constraints/
                         try {
-                            def buildDockerImage = docker.build("${ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --memory=100m .")
+                            def customImage = docker.build("${ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --memory=100m .")
+                                customImage.inside { sh 'ls' }
+                                if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
+                                print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
+
+                            // DOCKER_IMAGE_BUILD.inside { sh "ls" }
+                            // if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
+                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
+
+
                         // docker.build("${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --no-cache --memory=100m .")
+
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
                         } finally {
-                            echo "\033[42m\033[97m=====================Step ${env.STAGE_NAME} Done=====================\033[0m"
+                            echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                         }
                     }
                 }
@@ -112,14 +123,32 @@ pipeline {
                         try {
                             docker.image('nginx').withRun() {
                                 docker.image('nginx').inside() {
-                                    sh 'cat /etc/nginx/nginx.conf'
+                                    sh 'ls' // && cat /etc/nginx/nginx.conf
+                                    }
                                 }
-                            }
+
+                                    // if (manager.logContains('.*nginx*')) {
+                                    //   error("Build failed because of Delete organization Account..")
+                                    //         }
+                                // if (manager.logContains(".*nginx.conf.*")) {
+                                //     print("Build failed because of this and that..")
+                                // }
+
+                            // if logFileFilter {
+                            //     ".*nginx.conf*"
+                            // }  print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")
+
+                            // if (manager.build.logFile.readLines().contains(".*nginx.conf*")) {
+                            //      print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")
+                            //     }
+                            // if logContains(".*nginx.conf*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
+                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
+
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
                         } finally {
-                            echo "\033[42m\033[97m=====================Step ${env.STAGE_NAME} Done=====================\033[0m"
+                            echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                         }
                     }
                 }
@@ -172,7 +201,7 @@ pipeline {
                             // bat ("echo \033[41m\033[97m\033[1mthis is a catch error in jenkins\033[0m")
                             currentBuild.result = 'FAILURE'
                         } finally {
-                            echo "\033[42m\033[97m=====================Step ${env.STAGE_NAME} Done=====================\033[0m"
+                            echo "\033[42m\033[97m===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                         }
                     }
                 }
@@ -224,36 +253,51 @@ pipeline {
             }
         }
 
-        // stage('Git Secrets Scan') { // https://github.com/awslabs/git-secrets
-        //     steps {
-        //         script {
-        //             GitSecretsReport()
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Git Secrets Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
+            steps { // https://github.com/awslabs/git-secrets
+                script {
+                    def secretsOutput = sh(script: 'git secrets --scan --recursive ./', returnStdout: true).trim()
+                    echo "Git Secrets Scan Output:"
+                    echo secretsOutput
+                    writeFile file: 'git-secrets-report.txt', text: secretsOutput
+                    if (secretsOutput) {
+                    error "Secrets found in repository!"}
+                    archiveArtifacts artifacts: 'git-secrets-report.txt', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                }
+            }
+        }
 
-        // stage('Gitleaks Scan') {
-        //     steps {
-        //         script {
-        //             GitLeaksReport()
-        //         }
-        //     }
-        // }
+        stage('Gitleaks Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
+            steps {
+                script {
+                    def gitleaksOutput = sh(script: 'gitleaks detect --report-path=./gitleaks-detect-leaks-report.json', returnStdout: true).trim()
+                    echo "Gitleaks Scan Output:"
+                    echo gitleaksOutput
+                    archiveArtifacts artifacts: 'gitleaks-detect-leaks-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                }
+            }
+        }
 
-        // stage('GitGuardian Scan') {
-        //     agent {
-        //         docker { image 'gitguardian/ggshield:latest' }
-        //     }
-        //     environment {
-        //         GITGUARDIAN_API_KEY = credentials('GitGuardian-Access-Credentials')
-        //     }
-        //     steps {
-        //         bat 'ggshield secret scan {ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}'
-        //     }
-        // }
+        stage('GitGuardian Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
+            agent {
+                docker { image 'gitguardian/ggshield:latest' }
+            }
+            environment {
+                GITGUARDIAN_API_KEY = credentials('GitGuardian-Access-Credentials')
+            }
+            steps {
+                echo 'GitGuardian docker image scan'
+                bat 'ggshield secret scan docker {ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY} --output=ggshield.json --json --show-secrets --exit-zero'
+                echo 'GitGuardian files and folders scan'
+                bat 'ggshield secret scan path --recursive --show-secrets --output=ggshield-report.json --json  ./ -y'
+                archiveArtifacts artifacts: 'ggshield-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+            }
+        }
 
-    //     stage('SonarQube Security Analysis') {
+
+
+
+    //     stage('SonarQube Security Analysis') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
     //         steps {
     //             // Assuming SonarQube Scanner plugin is installed
     //             sonarqubeScanner serverUrl: '<sonarqube-url>', token: '<sonarqube-token>', analysisMode: 'JVM', tasks: ['sonar:qualitygate:fail'] // Configure settings
@@ -281,8 +325,8 @@ pipeline {
         }
         always {
             echo "Running Always Post"
-            cleanWs() // Clean workspace after each run
-            buildDescription 'Build Time: ${currentBuild.result}'
+            // cleanWs() // Clean workspace after each run
+            // buildDescription 'Build Time: ${BUILD_NUMBER}'
         }
     }
 }
