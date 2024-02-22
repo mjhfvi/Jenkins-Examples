@@ -13,15 +13,14 @@ pipeline {
         STAGE_PUBLISH_BUILD_ARTIFACTORY_INFO  = "false"
         STAGE_SECURITY_TESTS                = "true"
         ARTIFACTORY_SERVER                  = "192.168.50.50:8082"
-
     }
 
-    // parameters {
-    //     // gitParameter branchFilter: 'origin/(.*)', defaultValue: 'main', name: 'BRANCH', type: 'PT_BRANCH', description: 'Choose the Branch to run'
-    //     // string ( name: 'BRANCH_TO_RUN', defaultValue: 'dev', description: 'Name of Branch to run', trim: false )
-    //     // choice ( name: 'BRANCH_TO_RUN', choices: ['dev', 'Releases/1.0'], description: 'Select a Branch to run')
-    //     // string ( name: 'DOCKER_IMAGE_NODE_VERSION', defaultValue: '16.16.0', description: 'Node Version to Run in Docker.', trim: false )
-    // }
+    parameters {
+        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'main', name: 'BRANCH', type: 'PT_BRANCH', description: 'Choose the Branch to run'
+        // string ( name: 'BRANCH_TO_RUN', defaultValue: 'dev', description: 'Name of Branch to run', trim: false )
+        // choice ( name: 'BRANCH_TO_RUN', choices: ['dev', 'Releases/1.0'], description: 'Select a Branch to run')
+        // string ( name: 'DOCKER_IMAGE_NODE_VERSION', defaultValue: '16.16.0', description: 'Node Version to Run in Docker.', trim: false )
+    }
 
     options {
         timeout(time: 1, unit: 'HOURS')                                 // Overall Time for the Build to Run
@@ -30,15 +29,15 @@ pipeline {
         // retry(3)
     }
 
-    // triggers {
-    //     GenericTrigger (
-    //         genericVariables: [ [key: 'ref', value: '$.ref'] ],
-    //         token: 'pipeline_token',
-    //         causeString: 'Triggered by $.actor.displayName for BitBucket Project $ref from $branch',
-    //         printContributedVariables: true,
-    //         printPostContent: true
-    //     )
-    // }
+    triggers {
+        GenericTrigger (
+            genericVariables: [ [key: 'ref', value: '$.ref'] ],
+            token: 'pipeline_token',
+            causeString: 'Triggered by $.actor.displayName for BitBucket Project $ref from $branch',
+            printContributedVariables: true,
+            printPostContent: true
+        )
+    }
 
     stages {
         stage('Git Clone') {
@@ -110,40 +109,16 @@ pipeline {
                     print("Docker Image Testing")
                     script { // https://docs.docker.com/config/containers/resource_constraints/
                         try {
-                            docker.image('nginx').withRun() {
-                                docker.image('nginx').inside() {
-                                    sh 'ls' // && cat /etc/nginx/nginx.conf
-                                    }
+                            script {
+                                DOCKER_OUTPUT = DOCKER_BUILD_IMAGE.inside {
+                                    sh(script: 'ls', label: 'Folder List for Testing', returnStdout: true).trim()
                                 }
-
-
-                            // def customImage = docker.build("${ARTIFACTORY_SERVER}" + "/${env.DOCKER_REPOSITORY}", "-f ${env.DOCKER_FILE} --memory=100m .")
-                            //     customImage.inside { sh 'ls' }
-                            //     if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
-                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
-
-                            // DOCKER_IMAGE_BUILD.inside { sh "ls" }
-                            // if (manager.logContains(".*config.js.*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
-                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
-
-
-                                    // if (manager.logContains('.*nginx*')) {
-                                    //   error("Build failed because of Delete organization Account..")
-                                    //         }
-                                // if (manager.logContains(".*nginx.conf.*")) {
-                                //     print("Build failed because of this and that..")
-                                // }
-
-                            // if logFileFilter {
-                            //     ".*nginx.conf*"
-                            // }  print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")
-
-                            // if (manager.build.logFile.readLines().contains(".*nginx.conf*")) {
-                            //      print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")
-                            //     }
-                            // if logContains(".*nginx.conf*") && (".*tslint.json.*") && (".*webpack.config.js.*")) {
-                            //     print("Found Test Files config.js, tslint.json, webpack.config.js, Docker Image Test Past Successful")}
-
+                                if (DOCKER_OUTPUT.contains('Dockerfile') || output.contains('Dockerfile.nginx')) {
+                                    echo 'Dockerfile found in console output!'
+                                } else {
+                                    echo 'Dockerfile not found in console output!'
+                                }
+                            }
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
@@ -168,16 +143,6 @@ pipeline {
                 }
             }
         }
-
-        // stage ('Artifactory configuration') {
-        //     steps {
-        //         rtServer (
-        //             id: "ARTIFACTORY_SERVER",
-        //             url: "http://192.168.50.50:8082",
-        //             credentialsId: 'JFrog-Access-Credentials'
-        //         )
-        //     }
-        // }
 
         stage ('Push Image to Artifactory') { when { expression { env.STAGE_PUSH_IMAGE_TO_ARTIFACTORY.toBoolean() && BuildDockerImage == 'SUCCESS' } }
             steps {
@@ -275,7 +240,6 @@ pipeline {
                     } finally {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                     }
-
                 }
             }
         }
@@ -284,7 +248,6 @@ pipeline {
             steps {
                 script {
                     try {
-
                         sh(script: 'gitleaks detect --report-path gitleaks-detect-report.json', returnStdout: false)
                         def gitLeaksOutput = sh(script: 'gitleaks detect --baseline-path gitleaks-detect-report.json --report-path gitleaks-detect-findings.json', returnStdout: false)
                         // def gitLeaksOutput = sh(script: 'gitleaks detect --report-path=./gitleaks-leaks-report.json', returnStdout: true).trim()
@@ -304,12 +267,23 @@ pipeline {
                     }
                 }
             }
+            post {          //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
+                failure {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'FAILURE'
+                        }
+                    }
+                success {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        // echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'SUCCESS'
+                    }
+                }
+            }
         }
 
         stage('GitGuardian Scan') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
-            // agent {
-            //     docker { image 'gitguardian/ggshield' }
-            // }
             environment {
                 GITGUARDIAN_API_KEY = credentials('GitGuardian-Access-Credentials')
             }
@@ -322,7 +296,6 @@ pipeline {
                         archiveArtifacts artifacts: 'ggshield-secret-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
                         // sh(script: 'ggshield secret scan ci --show-secrets --exit-zero --output=ggshield-ci-report.json --json --debug', label:"GitGuardian CI Scan", returnStdout: false)
                         // archiveArtifacts artifacts: 'ggshield-ci-report.json', allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
-
                     } catch (ERROR) {
                         def catchErrorHandling = "${ERROR}"
                         if (catchErrorHandling.contains("exit code 1")) {
@@ -335,20 +308,46 @@ pipeline {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                     }
                 }
-
+            }
+            post {          //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
+                failure {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'FAILURE'
+                        }
+                    }
+                success {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        // echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'SUCCESS'
+                    }
+                }
             }
         }
 
-
-
-
-    //     stage('SonarQube Security Analysis') { when { expression { env.STAGE_SECURITY_TESTS.toBoolean() } }
-    //         steps {
-    //             // Assuming SonarQube Scanner plugin is installed
-    //             sonarqubeScanner serverUrl: '<sonarqube-url>', token: '<sonarqube-token>', analysisMode: 'JVM', tasks: ['sonar:qualitygate:fail'] // Configure settings
-    //         }
-    //     }
-
+        stage('SonarQube Analysis') {
+            steps {
+                script{
+                    withCredentials([string(credentialsId: 'SonarQube-Access-Credentials', variable: 'SONAR_TOKEN')]) {
+                        sh '/home/tzahi/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner -X -Dsonar.projectKey=localproject -Dsonar.sources=. -Dsonar.css.node=. -Dsonar.host.url=http://localhost:8088'
+                    }
+                }
+            }
+            post {          //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
+                failure {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'FAILURE'
+                        }
+                    }
+                success {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        // echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'SUCCESS'
+                    }
+                }
+            }
+        }
     }
 
     post { //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
