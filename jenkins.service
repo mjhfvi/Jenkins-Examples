@@ -1,0 +1,25 @@
+sudo vi /etc/systemd/system/jenkins.service
+
+[Unit]
+Description=This service runs Jenkins continuous integration system
+Wants=network.target
+After=network.target
+
+[Service]
+ExecStart=java -jar agent.jar -url http://localhost:8080/ -secret a3cff88092fa014ba3bf15538c28d8ceca8fa4835b57e4fd33fd056229f8145c -name "WSL-Ubuntu-Node" -workDir "/home/tzahi/jenkins/"
+Restart=always
+WorkingDirectory=/home/tzahi/jenkins
+User=tzahi
+Group=tzahi
+RestartSec=20s
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=jenkins.service
+
+sudo chown tzahi:tzahi /etc/systemd/system/jenkins.service
+sudo chmod 644 /etc/systemd/system/jenkins.service
+sudo systemctl daemon-reload
+sudo systemctl enable jenkins.service
+sudo systemctl start jenkins.service
