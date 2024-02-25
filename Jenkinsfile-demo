@@ -126,7 +126,7 @@ pipeline {
             }
             post {
                 failure {
-                    print("Tag Proccess is a Failure, Sending Email Notifications to ${env.EMAIL_LIST_DEFAULT}")
+                    print("Tag Process is a Failure, Sending Email Notifications to ${env.EMAIL_LIST_DEFAULT}")
                     script{
                         try {
                             NOTIFY_EMAIL("${env.EMAIL_LIST_DEFAULT}", "Build is a Failure")

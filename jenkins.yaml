@@ -270,7 +270,7 @@ unclassified:
   globalTimeOutConfiguration:
     operations:
     - "abortOperation"
-    overwriteable: false
+    overwritable: false
   groovy:
     installations:
     - name: "Groovy"

@@ -13,7 +13,7 @@ pipeline {
       }
       stage ('Terraform Initialize & Plan'){
           steps {
-            withCredentials([azureServicePrincipal('AzureSPN')]){  
+            withCredentials([azureServicePrincipal('AzureSPN')]){
             sh '''
             terraform init
             terraform plan -input=false -var 'subscription_id='$AZURE_SUBSCRIPTION_ID -var 'client_id='$AZURE_CLIENT_ID -var 'client_secret='$AZURE_CLIENT_SECRET 'tenand_id='$AZURE_TENANT_ID
@@ -22,9 +22,9 @@ pipeline {
           }
       }
       stage ('Terraform Apply') {
-          steps { 
+          steps {
             sh '''
-            terraform apply -input=false --auto-approve 
+            terraform apply -input=false --auto-approve
             '''
       }
   }
