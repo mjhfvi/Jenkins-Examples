@@ -350,6 +350,83 @@ pipeline {
         }
     }
 
+        stage ('Artifactory configuration') {
+            steps {
+                script{
+                    rtServer (
+                        id: 'Artifactory-1',
+                        url: 'http://localhost:8082/artifactory',
+                            // If you're using username and password:
+                        username: 'admin',
+                        password: 'Password1',
+                            // If you're using Credentials ID:
+                            // credentialsId: 'ccrreeddeennttiiaall',
+                            // If Jenkins is configured to use an http proxy, you can bypass the proxy when using this Artifactory server:
+                            bypassProxy: false,
+                            // Configure the connection timeout (in seconds).
+                            // The default value (if not configured) is 300 seconds:
+                            timeout: 300
+                    )
+
+                    rtDownload (
+                        serverId: 'Artifactory-1',
+                        spec: '''{
+                            "files": [
+                                {
+                                "pattern": "generic-local/",
+                                "target": "generic-local/"
+                                }
+                            ]
+                        }''',
+
+                        // Optional - Associate the downloaded files with the following custom build name and build number,
+                        // as build dependencies.
+                        // If not set, the files will be associated with the default build name and build number (i.e the
+                        // the Jenkins job name and number).
+                        buildName: 'holyFrog',
+                        buildNumber: '42',
+                        // Optional - Only if this build is associated with a project in Artifactory, set the project key as follows.
+                        project: 'myproject'
+                    )
+
+                    rtUpload (
+                        serverId: 'Artifactory-1',
+                        spec: '''{
+                            "files": [
+                                {
+                                "pattern": "dockerfile",
+                                "target": "generic-local/"
+                                }
+                            ]
+                        }''',
+
+                        // Optional - Associate the uploaded files with the following custom build name and build number,
+                        // as build artifacts.
+                        // If not set, the files will be associated with the default build name and build number (i.e the
+                        // the Jenkins job name and number).
+                        buildName: 'holyFrog',
+                        buildNumber: '42',
+                        // Optional - Only if this build is associated with a project in Artifactory, set the project key as follows.
+                        project: 'myproject'
+                    )
+                }
+            }
+            post {          //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
+                failure {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'FAILURE'
+                        }
+                    }
+                success {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        // echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                        PublishBuildArtifactoryInfo = 'SUCCESS'
+                    }
+                }
+            }
+        }
+
     post { //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
         aborted { // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
             echo "The Build is Aborted, Sending Email Notifications"
