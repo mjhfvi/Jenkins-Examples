@@ -2,101 +2,121 @@
 # Source: https://pre-commit.com/hooks.html
 # pre-commit install
 # pre-commit autoupdate
-# pre-commit run --all-files
-
+# pre-commit run --all-files --verbose
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: debug-statements
-  - id: double-quote-string-fixer
-  - id: name-tests-test
-  - id: requirements-txt-fixer
-  - id: check-added-large-files
-  - id: check-json
-  - id: pretty-format-json
-  - id: check-xml
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: double-quote-string-fixer
+      - id: debug-statements
+        verbose: true
+      - id: name-tests-test
+        verbose: true
+      - id: requirements-txt-fixer
+        verbose: true
+      - id: check-added-large-files
+        verbose: true
+        log_file: 'true'
+      - id: check-xml
+        verbose: true
+      - id: check-yaml
+        verbose: true
+        args: [--allow-multiple-documents]
+      - id: check-json
+        verbose: true
+      - id: pretty-format-json
+        verbose: true
   # - id: detect-aws-credentials
   # - id: detect-private-key
-    name: pre-commit-hooks (out-of-the-box hooks for pre-commit)
-
-- repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.5.5
-  hooks:
-  - id: remove-crlf
-  - id: remove-tabs
-    name: pre-commit-hooks (Lucas-C - useful git hooks)
-
-# - repo: https://github.com/adrienverge/yamllint
-#   rev: v1.35.1
-#   hooks:
-#   - id: yamllint
-#     name: yamllint (linter for YAML files)
-
-- repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
-  rev: v0.1.0
-  hooks:
-  - id: dockerfilelint
-    name: dockerfilelint-precommit-hooks (Useful pre-commit hooks for checking Dockerfiles)
-    stages: [commit]
-
-- repo: https://github.com/Yelp/detect-secrets
-  rev: v1.4.0
-  hooks:
-  - id: detect-secrets
-    name: detect-secrets (module for detecting secrets)
-
-# - repo: https://github.com/PeterMosmans/jenkinslint
-#   rev: v1.0.0
-#   hooks:
-#   - id: jenkinslint
-#     name: jenkinslint (basic Jenkinsfile linter)
-
-- repo: https://github.com/zricethezav/gitleaks
-  rev: v8.18.2
-  hooks:
-  - id: gitleaks
-  - id: gitleaks-docker
-    name: gitleaks (Gitleaks is for detecting and preventing hardcoded secrets)
-
-- repo: https://github.com/crate-ci/typos
-  rev: v1.18.2
-  hooks:
-  - id: typos
+        name: pre-commit-hooks (out-of-the-box hooks for pre-commit)
+        exclude: gitleaks-report.json
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: remove-crlf
+        verbose: true
+      - id: remove-tabs
+        name: pre-commit-hooks (Lucas-C - useful git hooks)
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v2.5.0
+    hooks:
+      - id: setup-cfg-fmt
+        name: setup-cfg-fmt (apply a consistent format to setup.cfg files)
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.18.2
+    hooks:
+      - id: typos
   # - id: typos-docker
-    name: typos (Finds and corrects spelling mistakes)
-    # exclude: 'jenkins-slave.xml'
-
-- repo: https://github.com/norwoodj/helm-docs
-  rev: v1.13.0
-  hooks:
-  - id: helm-docs
-    name: helm-docs (auto-generates documentation from helm charts into markdown files)
-
-- repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.5.0
-  hooks:
-  - id: setup-cfg-fmt
-    name: setup-cfg-fmt (apply a consistent format to setup.cfg files)
-
-- repo: https://github.com/asottile/reorder-python-imports
-  rev: v3.12.0
-  hooks:
-  - id: reorder-python-imports
-    exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
-    args: [--py39-plus, --add-import, 'from __future__ import annotations']
-    name: reorder-python-imports (Tool for automatically reordering python imports)
-
-# - repo: https://github.com/gitguardian/ggshield
+        name: typos (Finds and corrects spelling mistakes)
+        args: [-v]
+        exclude: gitleaks-report.json
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:  # Use yamlfix to fix yaml files
+      - id: yamllint
+        name: yamllint (linter for YAML files)
+  # - repo: https://github.com/PeterMosmans/jenkinslint
+  #   rev: v1.0.0
+  #   hooks:
+  #     - id: jenkinslint
+  #       name: jenkinslint (basic Jenkinsfile linter)
+  - repo: https://github.com/asottile/reorder-python-imports
+    rev: v3.12.0
+    hooks:
+      - id: reorder-python-imports
+        name: reorder-python-imports (Tool for automatically reordering python imports)
+        args: [--py39-plus, --add-import, from __future__ import annotations]
+        exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
+  - repo: https://github.com/hhatto/autopep8
+    rev: v2.0.4
+    hooks:
+      - id: autopep8
+        name: autopep8 (Style Guide Enforcement)
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+      - id: dockerfilelint
+        name: dockerfilelint-precommit-hooks (Useful pre-commit hooks for checking
+          Dockerfiles)
+        stages: [commit]
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks: # detect-secrets scan > .secrets.baseline | , '--disable-plugin', 'KeywordDetector'
+      - id: detect-secrets
+        name: detect-secrets (module for detecting secrets)
+        args: ['--baseline', '.secrets.baseline', '--disable-plugin', 'KeywordDetector']
+        # exclude: .secrets.baseline
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+      - id: gitleaks-docker
+        name: gitleaks (Gitleaks is for detecting and preventing hardcoded secrets)
+        exclude: .secrets.baseline
+  - repo: https://github.com/thoughtworks/talisman
+    rev: v1.32.0  # Update me!
+    hooks:
+      # both pre-commit and pre-push supported
+      # -   id: talisman-push
+      - id: talisman-commit
+        name: talisman (scans git changesets to ensure that potential secrets or sensitive
+          information)
+        entry: cmd --githook pre-commit
+# - repo: https://github.com/gitguardian/ggshield  # need token for use
 #   rev: v1.24.0
 #   hooks:
 #   - id: ggshield
 #   - id: docker-ggshield
 #     name: ggshield (CI environment to detect secrets)
 #     always_run: true
+  - repo: https://github.com/norwoodj/helm-docs
+    rev: v1.13.0
+    hooks:
+      - id: helm-docs
+        name: helm-docs (auto-generates documentation from helm charts into markdown
+          files)
 
 # - repo: https://github.com/dmitri-lerko/pre-commit-docker-kustomize
 #   rev: f3a8533

@@ -350,6 +350,32 @@ pipeline {
         }
     }
 
+        stage('Container audit') {
+            steps {
+                echo 'Audit the dockerfile used to spin up the web application'
+                script{
+                    def exists = fileExists '/var/jenkins_home/lynis/lynis'
+                    if(exists){
+                        echo 'lynis already exists'
+                    }else{
+                        sh """
+                        wget https://downloads.cisofy.com/lynis/lynis-2.7.5.tar.gz
+                        tar xfvz lynis-2.7.5.tar.gz -C ~/
+                        rm lynis-2.7.5.tar.gz
+                        """
+                    }
+                }
+                dir("/var/jenkins_home/lynis"){
+                    sh """
+                    mkdir $WORKSPACE/$BUILD_TAG/
+                    ./lynis audit dockerfile $WORKSPACE/owasp-top10-2017-apps/a7/gossip-world/deployments/Dockerfile | ansi2html > $WORKSPACE/$BUILD_TAG/docker-report.html
+                    mv /tmp/lynis.log $WORKSPACE/$BUILD_TAG/docker_lynis.log
+                    mv /tmp/lynis-report.dat $WORKSPACE/$BUILD_TAG/docker_lynis-report.dat
+                    """
+                }
+            }
+        }
+
         stage ('Artifactory configuration') {
             steps {
                 script{

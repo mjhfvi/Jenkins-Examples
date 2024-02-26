@@ -1,0 +1,4 @@
+JENKINS_SERVER=localhost
+JENKINS_SSH_PORT=
+JENKINS_URL=http://localhost:8080
+JENKINS_UNSAFE_SSL='true'
