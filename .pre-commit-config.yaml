@@ -18,6 +18,7 @@ repos:
         verbose: true
       - id: check-added-large-files
         verbose: true
+        args: [--maxkb=2000]
         log_file: 'true'
       - id: check-xml
         verbose: true
@@ -51,7 +52,7 @@ repos:
   # - id: typos-docker
         name: typos (Finds and corrects spelling mistakes)
         args: [-v]
-        exclude: gitleaks-report.json
+        exclude: jenkins.yaml
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
     hooks:  # Use yamlfix to fix yaml files
@@ -87,7 +88,6 @@ repos:
       - id: detect-secrets
         name: detect-secrets (module for detecting secrets)
         args: ['--baseline', '.secrets.baseline', '--disable-plugin', 'KeywordDetector']
-        # exclude: .secrets.baseline
   - repo: https://github.com/zricethezav/gitleaks
     rev: v8.18.2
     hooks:

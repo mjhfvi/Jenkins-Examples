@@ -1,0 +1,590 @@
+---
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - basicSSHUserPrivateKey:
+          description: "Access Credentials to GitHub Account"
+          id: "GitHub-Access-Credentials"
+          privateKeySource:
+            directEntry:
+              privateKey: "{AQAAABAAAAHQnNGVpbA/iXdfe0MwB1IFuS4XO9Ya0S13CiJDZam0VTjrPtmJ6/Xw0Dc/+8iKXfDJuYGXbu/jxOgyA+FgO+y8hsz07grEipaUY2AAOPYSpL5v4AauZucxxZzEf/UvaqpmF/OlulD+zdfVxYkw5HDRI9lowMqvF9SOTpM9BRpXpfhB2m3PGHa0eO8uIOw1Iol2s0JXCjv92/Fu31SC1hpZtnC/3Ol+P/oIR/cjN9fu+N5TNanJCKJv+OF3F8VuaOIwTlftM2JtYDByNH7ojp2rRudOnuW21f8Cdp9Q8PuDAc28IFnWKVxFXX92LXc4MZgMZYnFqsSIigXqDpz+g873qnvyW5tE+cKLIofBweOQ1I4/mZ3ZrXs1aKYkDFP8pRoz5osLfBXYiPypinp6NdtRWNZFMxSev87lzQ8L2IY8+zjfWCQRXlfbFMAW0x3GEBXQFRxAr6z3QtPVmrq22YQpM0m0eGJLrd83F0E+QG7fOo4VXsGeZcog7qIPggiAJrfSGoTG378Ds/wlpExyWItWeKpsknJ5qs5Wojb8WIe/n+7f6m4K2XLoywFwS+I3jbDdwXa3H/y1UU8fmQkA7Brot7yC6YI4rPL9MLbLlMTNrIeBXGfAVLiE5QKeRmJtsQ+D}"
+          scope: GLOBAL
+          username: "mjhfvi@gmail.com"
+          usernameSecret: true
+    - credentials:
+      - string:
+          description: "Access Credentials to JFrog Account"
+          id: "JFrog-Access-Credentials"
+          scope: GLOBAL
+          secret: "{AQAAABAAAALgo+W+mD+9DTaqn95QhF62hLxoRfnf2Rt1igincaZa+n1Z6vrJQrOPH5BQvMaJcTYiWrCZ9HMALGZRV10844b5RgzsnIp/SOSRZsfm0Zy5Do/qq3y0vxZ9lGaIFGFmaq9Mxzuk3f96lO0YAPQkLfFF/zbxmf8aZI28Yum5U5kcziMa1AHpEe5fTzPDtcUoTdjWVIP6GK0De+vIvLTJuI9Q79DjVgD4IZZkQJELLo6z9wRju522hrQWRG4oiu1StTLF+2DSev4lpjXjmAj0d25/GsLh0ImzG0Nkb7fyojs3hmBhUBw+lZZ/DS35l3+Y4LOJ7MHg41SNBZ9wUjTmcAvY1JofwIh1ciFs5H7QE5l/lfnaeryaPo7+HKuSNKftm+fbwilFci8I8eRWWkRTQ8aUIscCCcIVfcOTxXwElBl70R188U2O7FlUc1lVwbLIvSv6OPHRvr4wtYEZ1LMWqidRi0BqC3dVVThjG3BNL5Nr+lXT+LOmBN0IyUIS6taQNm8cETao/P4lz9rVutLhxmPYUaT3AjWXby8xhe8mtgY6k8EJJzU0fu0VHqH4u9Lkoq9m8FPSQaUCI9FGA0ObUkvMtdgeZsa/P1mUe0oaGyWb+WpN5NOgDkGGEN3fu/kpvSTyEIKJGdiL20b3jj07ypf/8PrEGun/leDX9NKggbn4zzu4f7HglLHVCV12KPoyXmPiU5XrWg/BQZEdwD150JoOu33Aj9niWtdn3ca2I7TffAzpClIJVRqrNvF6Nq+23cJ1/7ViXmwEILPLKT6LDCtYxXtH2DjnxkUfPPk191dci9iftWKbAwn1DWWMC/pdsk/RLNfEWUhdXltndHF/GbwtfosX1ZBjW/OIgvBaYPwDUCw8IDURVmmQ+V3GdoIHvxLEnzaqjRAtwdSjyvxF/HQEaD8Zf9OPsQ9tDhus9g2JDnZvwmCRkxVErgRalITi11Ex46OuWNjiAmseLWtJYwX3oP7GRMuGdb2x13oNGUtico0=}"
+      - string:
+          description: "Access Credentials to GitGuardian Account"
+          id: "GitGuardian-Access-Credentials"
+          scope: GLOBAL
+          secret: "{AQAAABAAAABQ8U97WTEcLbtDv0rCEOoLSs3tmzDfhxMaFsck7zGvDfW0lyxA2FfjICGbQdpNKRYVdx3WZZHuuJpg39oHN4UVkiVkYuqpZPIHGbz0OjEqU3O511swzU9+8rGSmXSZ3riW}"
+      - string:
+          description: "Access Credentials to SonarQube Account"
+          id: "SonarQube-Access-Credentials"
+          scope: GLOBAL
+          secret: "{AQAAABAAAAAwRpTcCR04zlMgfwzV7KpE3j1ze3tKdpp771o4MZ4RnFiCqGsaI89si/oogRnq7SCBeQ1KLSlTaMMna576sVG0KQ==}"
+      domain:
+        description: "my local domain credentials"
+        name: "Local Credentials"
+jenkins:
+  agentProtocols:
+  - "JNLP4-connect"
+  - "Ping"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: false
+  disableRememberMe: false
+  disabledAdministrativeMonitors:
+  - "hudson.util.DoubleLaunchChecker"
+  globalNodeProperties:
+  - diskSpaceMonitor:
+      freeDiskSpaceThreshold: "1GiB"
+      freeDiskSpaceWarningThreshold: "2GiB"
+      freeTempSpaceThreshold: "1GiB"
+      freeTempSpaceWarningThreshold: "2GiB"
+  labelAtoms:
+  - name: "Lenovo-Windows-Node"
+  - name: "WSL-Ubuntu-Node"
+  - name: "built-in"
+  - name: "docker"
+  - name: "linux"
+  - name: "windows"
+  labelString: "linux"
+  markupFormatter: "plainText"
+  mode: EXCLUSIVE
+  myViewsTabBar: "standard"
+  noUsageStatistics: true
+  nodeMonitors:
+  - "architecture"
+  - "clock"
+  - diskSpace:
+      freeSpaceThreshold: "1GiB"
+      freeSpaceWarningThreshold: "2GiB"
+  - "swapSpace"
+  - tmpSpace:
+      freeSpaceThreshold: "1GiB"
+      freeSpaceWarningThreshold: "2GiB"
+  - "responseTime"
+  nodes:
+  - permanent:
+      labelString: "windows docker"
+      launcher: "inbound"
+      name: "Lenovo-Windows-Node"
+      nodeProperties:
+      - diskSpaceMonitor:
+          freeDiskSpaceThreshold: "1GiB"
+          freeDiskSpaceWarningThreshold: "2GiB"
+          freeTempSpaceThreshold: "1GiB"
+          freeTempSpaceWarningThreshold: "2GiB"
+      remoteFS: "C:\\repository\\Jenkin-node\\WorkingDirectory"
+      retentionStrategy: "always"
+  - permanent:
+      labelString: "linux"
+      launcher:
+        inbound:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "WSL-Ubuntu-Node"
+      remoteFS: "/home/tzahi/jenkins/"
+      retentionStrategy: "always"
+  numExecutors: 0
+  primaryView:
+    all:
+      description: "Jenkins Testing System"
+      name: "all"
+  projectNamingStrategy: "standard"
+  quietPeriod: 5
+  remotingSecurity:
+    enabled: true
+  scmCheckoutRetryCount: 0
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+      - id: "mjhfvi"
+        name: "Tzahi Cohen"
+        properties:
+        - "consoleUrlProvider"
+        - "myView"
+        - preferredProvider:
+            providerId: "default"
+        - "theme"
+        - "timezone"
+        - "experimentalFlags"
+        - mailer:
+            emailAddress: "mjhfvi@gmail.com"
+        - "apiToken"
+        - favoriting:
+            autofavoriteEnabled: true
+        - "favorite"
+  slaveAgentPort: 50000
+  systemMessage: "Welcome Back !!!"
+  updateCenter:
+    sites:
+    - id: "default"
+      url: "https://updates.jenkins.io/update-center.json"
+  views:
+  - dashboard:
+      bottomPortlets:
+      - unstableJobsPortlet:
+          name: "Unstable Jobs"
+          recurse: false
+          showOnlyFailedJobs: false
+      columns:
+      - "status"
+      - "weather"
+      - "jobName"
+      - "lastSuccess"
+      - "lastFailure"
+      - "lastDuration"
+      - "buildButton"
+      - "favoriteColumn"
+      filterQueue: true
+      jobNames:
+      - "Pipeline"
+      - "Pipeline02"
+      leftPortlets:
+      - latestBuilds:
+          name: "Latest builds"
+          numBuilds: 10
+      name: "Dashboard"
+      rightPortlets:
+      - issuesChartPortlet:
+          height: 400
+          name: "Static analysis issues chart"
+      topPortlets:
+      - statBuilds:
+          name: "Build statistics"
+      - statJobs:
+          name: "Job statistics"
+  - buildMonitor:
+      config:
+        displayBadgesFrom: "getLastBuild"
+        order: "byName"
+      filterExecutors: true
+      filterQueue: true
+      jobNames:
+      - "Pipeline"
+      - "Pipeline02"
+      name: "Monitor"
+      title: "Monitor"
+  - all:
+      description: "Jenkins Testing System"
+      name: "all"
+  viewsTabBar: "standard"
+globalCredentialsConfiguration:
+  configuration:
+    providerFilter: "none"
+    typeFilter: "none"
+appearance:
+  prism:
+    theme: OKAIDIA
+  themeManager:
+    disableUserThemes: false
+    theme: "dark"
+security:
+  apiToken:
+    creationOfLegacyTokenEnabled: false
+    tokenGenerationOnCreationEnabled: false
+    usageStatisticsEnabled: true
+  envInject:
+    enableLoadingFromMaster: false
+    enablePermissions: false
+    hideInjectedVars: false
+  gitHooks:
+    allowedOnAgents: false
+    allowedOnController: false
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: "acceptFirstConnectionStrategy"
+  sSHD:
+    port: -1
+unclassified:
+  anchore:
+    debug: false
+    enginepass: "{AQAAABAAAAAQcF9IdtlJOcbzU3Kajh4JrgI4iCaC0HkxCM8Cs1750wA=}"
+    engineurl: "http://your_anchore_enterprise_host_ip:your_anchore_enterprise_port/v2"
+    engineverify: false
+  ansiColorBuildWrapper:
+    colorMaps:
+    - black: "#000000"
+      blackB: "#4C4C4C"
+      blue: "#1E90FF"
+      blueB: "#4682B4"
+      cyan: "#00CDCD"
+      cyanB: "#00FFFF"
+      green: "#00CD00"
+      greenB: "#00FF00"
+      magenta: "#CD00CD"
+      magentaB: "#FF00FF"
+      name: "xterm"
+      red: "#CD0000"
+      redB: "#FF0000"
+      white: "#E5E5E5"
+      whiteB: "#FFFFFF"
+      yellow: "#CDCD00"
+      yellowB: "#FFFF00"
+    - black: "#000000"
+      blackB: "#555555"
+      blue: "#0000AA"
+      blueB: "#5555FF"
+      cyan: "#00AAAA"
+      cyanB: "#55FFFF"
+      defaultBackground: 0
+      defaultForeground: 7
+      green: "#00AA00"
+      greenB: "#55FF55"
+      magenta: "#AA00AA"
+      magentaB: "#FF55FF"
+      name: "vga"
+      red: "#AA0000"
+      redB: "#FF5555"
+      white: "#AAAAAA"
+      whiteB: "#FFFFFF"
+      yellow: "#AA5500"
+      yellowB: "#FFFF55"
+    - black: "black"
+      blackB: "black"
+      blue: "blue"
+      blueB: "blue"
+      cyan: "cyan"
+      cyanB: "cyan"
+      green: "green"
+      greenB: "green"
+      magenta: "magenta"
+      magentaB: "magenta"
+      name: "css"
+      red: "red"
+      redB: "red"
+      white: "white"
+      whiteB: "white"
+      yellow: "yellow"
+      yellowB: "yellow"
+    - black: "#2E3436"
+      blackB: "#2E3436"
+      blue: "#3465A4"
+      blueB: "#3465A4"
+      cyan: "#06989A"
+      cyanB: "#06989A"
+      defaultBackground: 0
+      defaultForeground: 7
+      green: "#4E9A06"
+      greenB: "#4E9A06"
+      magenta: "#75507B"
+      magentaB: "#75507B"
+      name: "gnome-terminal"
+      red: "#CC0000"
+      redB: "#CC0000"
+      white: "#D3D7CF"
+      whiteB: "#D3D7CF"
+      yellow: "#C4A000"
+      yellowB: "#C4A000"
+  artifactoryBuilder:
+    jfrogInstances:
+    - artifactoryUrl: "http://localhost:8082/artifactory"
+      bypassProxy: true
+      connectionRetry: 3
+      deployerCredentialsConfig:
+        credentialsId: "JFrog-Access-Credentials"
+        overridingCredentials: false
+        password: "{AQAAABAAAAAQv1hib+rgGkGlytTEBTgnqV9PBLN+mna3m68vvnulVUw=}"
+        username: "****"
+      deploymentThreads: 3
+      distributionUrl: "http://localhost:8082/distribution"
+      instanceId: "ARTIFACTORY_SERVER"
+      platformUrl: "http://localhost"
+      timeout: 300
+    jfrogPipelinesServer:
+      bypassProxy: false
+      connectionRetries: 3
+      credentialsConfig:
+        ignoreCredentialPluginDisabled: true
+        overridingCredentials: false
+        password: "{AQAAABAAAAAQ2ZxkIo2z40k5jiQU0tFdKZVmGBdEIM89gmUiHjEOuO0=}"
+        username: "****"
+      timeout: 300
+    useCredentialsPlugin: true
+  badgePlugin:
+    disableFormatHTML: false
+  bitbucketEndpointConfiguration:
+    endpoints:
+    - bitbucketCloudEndpoint:
+        enableCache: false
+        manageHooks: false
+        repositoriesCacheDuration: 0
+        teamCacheDuration: 0
+  buildDiscarders:
+    configuredBuildDiscarders:
+    - "jobBuildDiscarder"
+  buildMonitorView:
+    permissionToCollectAnonymousUsageStatistics: true
+  buildStepOperation:
+    enabled: false
+  cacheConfig:
+    cacheGetJobs: false
+    cacheGetJobsMinutes: 0
+  crowdStrikeSecurity:
+    falconCloud: "us-1.crowdstrike.com"
+  dependencyGraphProperty:
+    editFunctionInJSViewEnabled: false
+    graphRankDirection: "TB"
+    graphvizEnabled: true
+    projectNameStripRegex: ".*"
+    projectNameStripRegexGroup: 1
+    projectNameSuperscriptRegexGroup: -1
+  email-ext:
+    adminRequiredForTemplateTesting: false
+    allowUnregisteredEnabled: false
+    charset: "UTF-8"
+    debugMode: false
+    defaultBody: |-
+      $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+      Check console output at $BUILD_URL to view the results.
+    defaultContentType: "text/plain"
+    defaultSubject: "$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!"
+    defaultTriggerIds:
+    - "hudson.plugins.emailext.plugins.trigger.FailureTrigger"
+    maxAttachmentSize: -1
+    maxAttachmentSizeMb: -1
+    precedenceBulk: false
+    watchingEnabled: false
+  enrichedSummaryConfig:
+    enrichedSummaryEnabled: false
+    httpClientDelayBetweenRetriesInSeconds: 1
+    httpClientMaxRetries: 3
+    httpClientTimeoutInSeconds: 1
+  fingerprints:
+    fingerprintCleanupDisabled: false
+    storage: "file"
+  gitHubConfiguration:
+    apiRateLimitChecker: ThrottleForNormalize
+  gitHubPluginConfig:
+    hookUrl: "http://localhost:8080/github-webhook/"
+  githubPullRequests:
+    actualiseOnFactory: false
+  globalLibraries:
+    libraries:
+    - defaultVersion: "main"
+      implicit: true
+      name: "Jenkins-Shared-Library"
+      retriever:
+        modernSCM:
+          clone: true
+          libraryPath: "GlobalSharedLibraries/"
+          scm:
+            git:
+              credentialsId: "GitHub-Access-Credentials"
+              id: "6bcd3dda-0e2f-4d12-8519-063a1dde5457"
+              remote: "https://github.com/mjhfvi/JenkinsExamples.git"
+              traits:
+              - "gitBranchDiscovery"
+  globalTimeOutConfiguration:
+    operations:
+    - "abortOperation"
+    overwriteable: true
+    strategy:
+      elasticTimeOutStrategy:
+        failSafeTimeoutDuration: false
+        numberOfBuilds: "3"
+        timeoutMinutesElasticDefault: "60"
+        timeoutPercentage: "150"
+  groovy:
+    installations:
+    - name: "Groovy"
+      properties:
+      - installSource:
+          installers:
+          - groovyInstaller:
+              id: "4.0.9"
+  injectionConfig:
+    allowUntrusted: false
+    checkForBuildAgentErrors: false
+    enabled: false
+    enforceUrl: false
+    injectCcudExtension: false
+    injectMavenExtension: false
+  jFrogPlatformBuilder:
+    allowHttpConnections: false
+  junitTestResultStorage:
+    storage: "file"
+  location:
+    adminAddress: "mjhfvi@gmail.com"
+    url: "http://localhost:8080/"
+  logFileFilterConfig:
+    enabledDefaultRegexp: false
+    enabledDefaultRegexpAWS: false
+    enabledDefaultRegexpDD: false
+    enabledGlobally: false
+  logParser:
+    legacyFormatting: false
+  mailer:
+    charset: "UTF-8"
+    useSsl: false
+    useTls: false
+  mavenModuleSet:
+    localRepository: "default"
+  pluginImpl:
+    enableCredentialsFromNode: false
+  pollSCM:
+    pollingThreadCount: 10
+  prometheusConfiguration:
+    appendParamLabel: false
+    appendStatusLabel: false
+    collectCodeCoverage: false
+    collectDiskUsage: true
+    collectNodeStatus: true
+    collectingMetricsPeriodInSeconds: 120
+    countAbortedBuilds: true
+    countFailedBuilds: true
+    countNotBuiltBuilds: true
+    countSuccessfulBuilds: true
+    countUnstableBuilds: true
+    defaultNamespace: "default"
+    fetchTestResults: true
+    jobAttributeName: "jenkins_job"
+    path: "prometheus"
+    perBuildMetrics: false
+    processingDisabledBuilds: false
+    useAuthenticatedEndpoint: false
+  scmGit:
+    addGitTagAction: false
+    allowSecondFetch: false
+    createAccountBasedOnEmail: false
+    disableGitToolChooser: false
+    hideCredentials: false
+    showEntireCommitSummaryInChanges: true
+    useExistingAccountWithSameEmail: false
+  separator:
+    globalSectionHeaderStyle: "font-weight: bold;"
+  sidebarGlobalLink:
+    links:
+    - displayName: "Jenkins Plugins"
+      iconFileName: "/userContent/Blackvariant-Button-Ui.png"
+      urlName: "https://plugins.jenkins.io/"
+    - displayName: "Jenkins Environment Variables"
+      iconFileName: "/userContent/Papirus-Team-Papirus-Apps-Preferences-desktop-icons.512.png"
+      urlName: "http://localhost:8080/env-vars.html/"
+    - displayName: "Jenkins Pipeline Syntax"
+      iconFileName: "/userContent/Bokehlicia-Captiva-Share.256.png"
+      urlName: "http://localhost:8080/job/Pipeline/pipeline-syntax/"
+  sonarGlobalConfiguration:
+    buildWrapperEnabled: true
+    installations:
+    - credentialsId: "SonarQube-Access-Credentials"
+      name: "LocalSonarQubeServer"
+      serverUrl: "http://localhost:8088"
+      triggers:
+        skipScmCause: false
+        skipUpstreamCause: false
+  timestamper:
+    allPipelines: true
+    elapsedTimeFormat: "'<b>'mm:ss'</b> '"
+    systemTimeFormat: "'<b>'HH:mm:ss'</b> '"
+  warningsParsers:
+    consoleLogScanningPermitted: false
+  whitelist:
+    enabled: false
+tool:
+  customTool:
+    installations:
+    - name: "NodeJS"
+      properties:
+      - installSource:
+          installers:
+          - authenticatedzip:
+              label: "windows"
+              subdir: "node-v20.11.1-win-x64"
+              url: "https://nodejs.org/dist/v20.11.1/node-v20.11.1-win-x64.zip"
+  git:
+    installations:
+    - home: "git"
+      name: "Git-Linux"
+      properties:
+      - installSource:
+          installers:
+          - sharedDirectoryInstaller:
+              failOnSubstitution: false
+              label: "linux"
+              toolHome: "/usr/bin/git"
+          - authenticatedzip:
+              label: "linux"
+              url: "https://www.kernel.org/pub/software/scm/git/git-2.44.0.tar.gz"
+    - home: "git"
+      name: "Git-Windows"
+      properties:
+      - installSource:
+          installers:
+          - zip:
+              label: "windows"
+              subdir: "cmd"
+              url: "https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/MinGit-2.44.0-64-bit.zip"
+  go:
+    installations:
+    - name: "GOLANG"
+      properties:
+      - installSource:
+          installers:
+          - golangInstaller:
+              id: "1.22.0"
+          - findonpath:
+              executableName: "go"
+              label: "windows"
+  groovy:
+    installations:
+    - name: "Groovy"
+      properties:
+      - installSource:
+          installers:
+          - groovyInstaller:
+              id: "4.0.9"
+  jdk:
+    installations:
+    - name: "JDK"
+      properties:
+      - installSource:
+          installers:
+          - jdkInstaller:
+              acceptLicense: true
+              id: "jdk-9.0.4-oth-JPR"
+          - findonpath:
+              executableName: "java"
+              label: "windows"
+              versionCmd:
+              - "java"
+              - "--version"
+              versionCmdString: |-
+                java
+                --version
+              versionMin: "21.0.0"
+              versionPattern: |-
+                FAILED TO EXPORT
+                io.jenkins.plugins.extratoolinstallers.installers.IsAlreadyOnPath#versionPattern: No configurator found for type class java.util.regex.Pattern
+              versionPatternString: "openjdk ([0-9.]*)"
+  mavenGlobalConfig:
+    globalSettingsProvider: "standard"
+    settingsProvider: "standard"
+  powerShellInstallation:
+    installations:
+    - home: "powershell.exe"
+      name: "DefaultWindows"
+    - home: "pwsh"
+      name: "DefaultLinux"
+  sonarRunnerInstallation:
+    installations:
+    - name: "sonar-scanner"
+      properties:
+      - installSource:
+          installers:
+          - sonarRunnerInstaller:
+              id: "5.0.1.3006"
