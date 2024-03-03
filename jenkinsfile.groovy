@@ -391,6 +391,25 @@ pipeline {
             }
         }
 
+        stage ('Host Docker Security Scan') {
+            steps {
+                timeout(activity: true, time: 5) {
+                    script{
+                        def exists = fileExists '/var/jenkins_home/docker-bench-security/docker-bench-security.sh'
+                        if(exists){
+                            echo 'docker-bench-security already exists'
+                        }else{
+                            sh """
+                            wget https://raw.githubusercontent.com/docker/docker-bench-security/master/bench-security.sh
+                            chmod +x bench-security.sh
+                            mv bench-security.sh /var/jenkins_home/docker-bench-security/
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
         stage ('Artifactory configuration') {
             steps {
                 script{
