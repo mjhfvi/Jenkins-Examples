@@ -144,6 +144,21 @@ pipeline {
             }
         }
 
+        stage('Docker Scout CVES') {
+            steps {
+                // Install Docker Scout
+                sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
+
+                // Log into Docker Hub
+                // sh 'echo $DOCKER_HUB_PAT | docker login -u $DOCKER_HUB_USER --password-stdin'
+
+                // Analyze and fail on critical or high vulnerabilities
+                sh 'docker scout cves --format sarif --locations --ignore-base --output dockerscout.json nginx'
+                sh 'docker scout cves --format markdown --locations --ignore-base --output dockerscout.html nginx'
+
+            }
+        }
+
         stage ('Push Image to Artifactory') { when { expression { env.STAGE_PUSH_IMAGE_TO_ARTIFACTORY.toBoolean() && BuildDockerImage == 'SUCCESS' } }
             steps {
                 timeout(activity: true, time: 10, unit: 'MINUTES') {
