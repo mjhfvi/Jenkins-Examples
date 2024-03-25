@@ -1,5 +1,5 @@
-def NOTIFY_EMAIL (EMAIL_ADDRESS, TEST_RESULT) {
-    emailext (
+def notify_email(Email_address, test_result){
+    emailext(
         to: "${EMAIL_ADDRESS}",
         subject: "Job Result: Job '${env.JOB_NAME} - Build Number [${env.BUILD_NUMBER}]' - Status '${TEST_RESULT}'",
         body: """<p>Job Result: Job '${env.JOB_NAME} - Build Number [${env.BUILD_NUMBER}]' - Status '${TEST_RESULT}':</p>
