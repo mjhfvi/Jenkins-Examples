@@ -135,3 +135,20 @@ repos:
 #       verbose: false
 #       name: post commit
 #       always_run: true
+
+  # - repo: https://github.com/google/go-jsonnet
+  #   rev: v0.20.0 # ref you want to point at, e.g. v0.17.0
+  #   hooks:
+  #     - id: jsonnet-format
+  #     - id: jsonnet-lint
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.28.0
+    hooks:
+      - id: check-github-workflows
+        args: ["--verbose"]
+
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: v1.0.0
+    hooks:
+    - id: check-json5
