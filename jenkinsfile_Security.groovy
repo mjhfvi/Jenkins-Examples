@@ -2,11 +2,12 @@ pipeline {
     agent { label 'linux' }
 
     environment {
-        GIT_REPOSITORY_URL                  = "https://github.com/mjhfvi/DockerExamples.git"
-        DOCKER_FILE                         = "dockerfile.nginx"
-        DOCKER_REPOSITORY                   = "mjhfvi/demo"
+        GIT_REPOSITORY_URL                  = "https://gitlab.com/training-department/home-task-app"
+        DOCKER_FILE                         = "dockerfile"
+        DOCKER_REPOSITORY                   = "mjhfvi/demo-develeap"
         STAGE_BUILD_DOCKER_IMAGE            = "true"
         STAGE_TEST_DOCKER_IMAGE             = "true"
+        STAGE_PUSH_DOCKER_IMAGE             = "false"
         STAGE_PUSH_IMAGE_TO_ARTIFACTORY     = "false"
         STAGE_PUBLISH_BUILD_ARTIFACTORY_INFO  = "false"
         STAGE_SECURITY_TESTS                = "true"
@@ -92,6 +93,54 @@ pipeline {
                             script {
                                 DOCKER_OUTPUT = DOCKER_BUILD_IMAGE.inside {
                                     sh(script: 'ls', label: 'Folder List for Testing', returnStdout: true).trim()
+                                }
+                                if (DOCKER_OUTPUT.contains('Dockerfile') || output.contains('Dockerfile.nginx')) {
+                                    echo 'Dockerfile found in console output!'
+                                } else {
+                                    echo 'Dockerfile not found in console output!'
+                                }
+                            }
+                        } catch (ERROR) {
+                            echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
+                            currentBuild.result = 'FAILURE'
+                        } finally {
+                            echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                        }
+                    }
+                }
+            }
+            post {          //  always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, and cleanup
+                failure {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                        TestDockerImage = 'FAILURE'
+                    }
+                }
+                success {   // "SUCCESS", "UNSTABLE", "FAILURE", "NOT_BUILT", "ABORTED"
+                    script{
+                        // echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                        TestDockerImage = 'SUCCESS'
+                    }
+                }
+            }
+    }
+
+        stage('Push Docker Image') { when { expression { env.STAGE_PUSH_DOCKER_IMAGE.toBoolean() && TestDockerImage == 'SUCCESS' } }
+            steps {
+                timeout(activity: true, time: 10, unit: 'MINUTES') {
+                    print("Docker Image Pushing")
+                    script {
+                        try {
+                            script {
+                            //     docker.withRegistry('https://registry.example.com', 'credentials-id') {
+                            //     def customImage = docker.build("my-image:${env.BUILD_ID}")
+                            //     /* Push the container to the custom Registry */
+                            //     customImage.push()
+                            // }
+
+
+
+                                DOCKER_OUTPUT = DOCKER_BUILD_IMAGE.inside { sh(script: 'ls', label: 'Folder List for Testing', returnStdout: true).trim()
                                 }
                                 if (DOCKER_OUTPUT.contains('Dockerfile') || output.contains('Dockerfile.nginx')) {
                                     echo 'Dockerfile found in console output!'
