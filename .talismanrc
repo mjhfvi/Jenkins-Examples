@@ -10,4 +10,6 @@ fileignoreconfig:
   checksum: 1a1331212fed6fd1528a46e724590b37434c767526f74ebe410f250f77464a46
 - filename: jenkinsfile_Security.groovy
   checksum: 9bc0bf31ecec29261a44259a701a44c3886298af817caa5c700f115b8c2004ce
+- filename: Pipelines/CorePipeline.groovy
+  checksum: b417272d6ae61124cb125a92678a18fdc921b4d68038a3265ad8fd93847e5271
 version: ""
