@@ -2,14 +2,20 @@
 # consider pasting the following format in .talismanrc file in the project root
 ---
 fileignoreconfig:
-- filename: .yamllint.yaml
-  checksum: 268cb8045ae68ca3560f8feb149bfbfde96aaed8b38853e305d6de5d0221ab93
-- filename: .pre-commit-config.yaml
-  checksum: 0bf281f00027b19d67d924e829485d692b66248b3e9f2d687e4da0ae4f92ea82
-- filename: tools/jenkins.yaml
-  checksum: 1a1331212fed6fd1528a46e724590b37434c767526f74ebe410f250f77464a46
-- filename: jenkinsfile_Security.groovy
-  checksum: 9bc0bf31ecec29261a44259a701a44c3886298af817caa5c700f115b8c2004ce
-- filename: Pipelines/CorePipeline.groovy
-  checksum: b417272d6ae61124cb125a92678a18fdc921b4d68038a3265ad8fd93847e5271
+  - filename: .yamllint.yaml
+    checksum: 268cb8045ae68ca3560f8feb149bfbfde96aaed8b38853e305d6de5d0221ab93
+  - filename: .pre-commit-config.yaml
+    checksum: 0bf281f00027b19d67d924e829485d692b66248b3e9f2d687e4da0ae4f92ea82
+  - filename: tools/jenkins.yaml
+    checksum: 1a1331212fed6fd1528a46e724590b37434c767526f74ebe410f250f77464a46
+  - filename: jenkinsfile_Security.groovy
+    checksum: 9bc0bf31ecec29261a44259a701a44c3886298af817caa5c700f115b8c2004ce
+  - filename: Pipelines/CorePipeline.groovy
+    checksum: b417272d6ae61124cb125a92678a18fdc921b4d68038a3265ad8fd93847e5271
+  - filename: Pipelines/Core_Pipeline_Security.groovy
+    checksum: 4681b62b50eb8063eb058bc1b39bdcc9ab6d92f85f51c647d0bc3f1ead1c3571
+  - filename: configuration-as-code-jenkins-02.yaml
+    checksum: 8885654f52acc7d3b140e9069c96124dee1552a99b0bb6cf8ba544d17bd83d7f
+  - filename: Pipelines/Core_Pipeline_Docker_Build.groovy
+    checksum: 5eecec75d3e8e69956a90313b77a52989e3d4a9881bdfa27771dafac3caf879d
 version: ""
