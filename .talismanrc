@@ -18,4 +18,16 @@ fileignoreconfig:
     checksum: 8885654f52acc7d3b140e9069c96124dee1552a99b0bb6cf8ba544d17bd83d7f
   - filename: Pipelines/Core_Pipeline_Docker_Build.groovy
     checksum: 5eecec75d3e8e69956a90313b77a52989e3d4a9881bdfa27771dafac3caf879d
+  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_With_Parameters.groovy
+    checksum: 018457bd22144a4e13a1e19567df6f3c1695f71f0b67faa4bef9832bdea97609
+  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Secret_Leaks.groovy
+    checksum: baebd2ac8ab6a78442af9862714b971fa62c732d74d66cd3ae9ff9c0ee735fff
+  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Docker_CVE.groovy
+    checksum: 037ce2c004957e99291b47be8e5b3cb47e5103c77f00a505e17996224a1ccbf5
+  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Compiler_CVE.groovy
+    checksum: 0fb2463200923090ae51432bd919b75361f63b244a807613085bdb784c26ef64
+  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Docker_Build.groovy
+    checksum: bb438597d38c5635e648e43f990664bed43fad495dc5fbe2e98c157e17828a0c
+  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_With_Parameters.groovy
+    checksum: afb5ba56d4155297c8d2f08e039873b51e338ca00a83b6e73d23e9d7fb256748
 version: ""
