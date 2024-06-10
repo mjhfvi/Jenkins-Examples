@@ -1,16 +1,15 @@
 pipeline {
     agent none
 
-    parameters {
-        choice(choices: ['https://github.com/mjhfvi/JobAssignment.git', 'https://github.com/mjhfvi/DockerExamples.git'],name: 'SET_GIT_REPOSITORY_URL', description: 'Choose the Git Repository')
-        string(defaultValue: '00', name: 'DOCKER_REPOSITORY_TAG', description: 'set docker tag number')
+    // parameters {
+        // choice(choices: ['https://github.com/mjhfvi/JobAssignment.git', 'https://github.com/mjhfvi/DockerExamples.git'],name: 'SET_GIT_REPOSITORY_URL', description: 'Choose the Git Repository')
+        // string(defaultValue: '00', name: 'DOCKER_REPOSITORY_TAG', description: 'set docker tag number')
         // booleanParam(defaultValue: false, name: 'STAGE_BUILD_DOCKER_IMAGE', description: 'build docker image')
         // booleanParam(defaultValue: false, name: 'USE_CACHE_FOR_DOCKER_BUILD_IMAGE', description: 'use cache when building docker image')
         // booleanParam(defaultValue: false, name: 'USE_STAGE_PUSH_DOCKER_IMAGE', description: 'push docker image to docker hub')
         // booleanParam(defaultValue: false, name: 'STAGE_SECURITY_TESTS', description: 'test security vulnerabilities in docker image')
         // string(name: 'RUN_JOB_NODE_NAME', description: 'Set Node Label')
-
-    }
+    // }
 
     environment {
         // STAGE_SECURITY_TESTS                    = "$params.STAGE_SECURITY_TESTS"    // "false"
@@ -19,10 +18,6 @@ pipeline {
         STAGE_SECURITY_TESTS_SONARQUBE          = "false"
         STAGE_SECURITY_TESTS_GITGUARDIAN        = "false"
         STAGE_SECURITY_TESTS_GITLEAKS           = "false"
-        // STAGE_PUSH_IMAGE_TO_ARTIFACTORY         = "true"
-        // STAGE_PUBLISH_BUILD_ARTIFACTORY_INFO    = "true"
-        RUN_JOB_NODE_NAME                       = "$params.RUN_JOB_NODE_NAME"
-        CHANGE_BUILD_NUMBER                     = "$params.CHANGE_BUILD_NUMBER"
     }
 
     options {
@@ -35,7 +30,12 @@ pipeline {
         stage('SecurityTests') {
             parallel{
                 stage('Docker Scout CVES') { when { expression { env.STAGE_SECURITY_TESTS_DOCKER_SCOUT.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script {
@@ -63,7 +63,12 @@ pipeline {
                 }
 
                 stage('Xray scan') { when { expression { env.STAGE_SECURITY_TESTS_XRAY_SCAN.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script{
@@ -89,7 +94,12 @@ pipeline {
                 }
 
                 stage('SonarQube Analysis') { when { expression { env.STAGE_SECURITY_TESTS_SONARQUBE.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script{
@@ -116,10 +126,12 @@ pipeline {
                 }
 
                 stage('GitGuardian Scan') { when { expression { env.STAGE_SECURITY_TESTS_GITGUARDIAN.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
-                    // agent {
-                    //     docker { image 'gitguardian/ggshield' }
-                    // }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     environment {
                         GITGUARDIAN_API_KEY = credentials('GitGuardian-Access-Credentials')
                     }
@@ -152,7 +164,12 @@ pipeline {
                 }
 
                 stage('GitLeaks Scan') { when { expression { env.STAGE_SECURITY_TESTS_GITLEAKS.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script {
@@ -185,7 +202,6 @@ pipeline {
         }
 
         stage ('Update Build Info') {
-            // agent { label "${env.RUN_JOB_NODE_NAME}" }
             steps {
                 script{
                     try {

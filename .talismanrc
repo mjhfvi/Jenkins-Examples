@@ -6,28 +6,10 @@ fileignoreconfig:
     checksum: 268cb8045ae68ca3560f8feb149bfbfde96aaed8b38853e305d6de5d0221ab93
   - filename: .pre-commit-config.yaml
     checksum: 0bf281f00027b19d67d924e829485d692b66248b3e9f2d687e4da0ae4f92ea82
-  - filename: tools/jenkins.yaml
-    checksum: 1a1331212fed6fd1528a46e724590b37434c767526f74ebe410f250f77464a46
-  - filename: jenkinsfile_Security.groovy
-    checksum: 9bc0bf31ecec29261a44259a701a44c3886298af817caa5c700f115b8c2004ce
-  - filename: Pipelines/CorePipeline.groovy
-    checksum: b417272d6ae61124cb125a92678a18fdc921b4d68038a3265ad8fd93847e5271
-  - filename: Pipelines/Core_Pipeline_Security.groovy
-    checksum: 4681b62b50eb8063eb058bc1b39bdcc9ab6d92f85f51c647d0bc3f1ead1c3571
-  - filename: configuration-as-code-jenkins-02.yaml
-    checksum: 8885654f52acc7d3b140e9069c96124dee1552a99b0bb6cf8ba544d17bd83d7f
-  - filename: Pipelines/Core_Pipeline_Docker_Build.groovy
-    checksum: 5eecec75d3e8e69956a90313b77a52989e3d4a9881bdfa27771dafac3caf879d
+  - filename: Pipelines/Jenkinsfile_Active_Choices_Example.groovy
+    checksum: bac8f3273c65f7efc9961bf05af8c1b3a34e9ac978405f4a0d923e37161da92e
   - filename: Pipelines/Pipeline_Templates/Pipeline_Build_With_Parameters.groovy
-    checksum: 018457bd22144a4e13a1e19567df6f3c1695f71f0b67faa4bef9832bdea97609
-  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Secret_Leaks.groovy
-    checksum: baebd2ac8ab6a78442af9862714b971fa62c732d74d66cd3ae9ff9c0ee735fff
-  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Docker_CVE.groovy
-    checksum: 037ce2c004957e99291b47be8e5b3cb47e5103c77f00a505e17996224a1ccbf5
-  - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Compiler_CVE.groovy
-    checksum: 0fb2463200923090ae51432bd919b75361f63b244a807613085bdb784c26ef64
+    checksum: 9e0cc766a4c99e945d60d54f2e3a0a10ef7ba2dae3232c7f5755def92ab3143e
   - filename: Pipelines/Pipeline_Templates/Templates_Pipeline_Docker_Build.groovy
-    checksum: bb438597d38c5635e648e43f990664bed43fad495dc5fbe2e98c157e17828a0c
-  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_With_Parameters.groovy
-    checksum: afb5ba56d4155297c8d2f08e039873b51e338ca00a83b6e73d23e9d7fb256748
+    checksum: 52f68a4b6a5b365610add07e1c9b4e257467ca3aa3aaf417774f5050ae245433
 version: ""

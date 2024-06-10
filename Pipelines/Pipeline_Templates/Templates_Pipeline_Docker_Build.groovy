@@ -2,37 +2,27 @@ pipeline {
     agent { label 'linux' }
 
     parameters {
-        choice(choices: ['JobAssignment', 'DockerExamples'], name: 'SET_GIT_REPOSITORY_URL', description: 'Choose the Git Repository')
-        string(defaultValue: '00', name: 'DOCKER_REPOSITORY_TAG', description: 'set docker tag number')
-        booleanParam(defaultValue: true, name: 'USE_STAGE_BUILD_DOCKER_IMAGE', description: 'build docker image')
-        booleanParam(defaultValue: true, name: 'USE_CACHE_FOR_DOCKER_BUILD_IMAGE', description: 'use cache when building docker image')
-        booleanParam(defaultValue: false, name: 'USE_STAGE_PUSH_DOCKER_IMAGE', description: 'push docker image to docker hub')
-        booleanParam(defaultValue: true, name: 'USE_STAGE_DOCKER_CVE_SCAN', description: 'Test Security Vulnerability Exploits For Docker Image')
-        booleanParam(defaultValue: true, name: 'USE_STAGE_CODE_CHECKS', description: 'Check Code for Security Vulnerabilities')
-        // string(name: 'BUILD_NUMBER', value: "BUILD_NUMBER")
-        // string(name: 'RUN_JOB_NODE_NAME', description: 'set node')
-
+        choice( choices: ['JobAssignment', 'DockerExamples'], name: 'SET_GIT_REPOSITORY_URL', description: 'Choose the Git Repository')
+        string( name: 'DOCKER_REPOSITORY_TAG', description: 'set docker tag number')
+        booleanParam( name: 'USE_STAGE_BUILD_DOCKER_IMAGE', description: 'build docker image')
+        booleanParam( name: 'USE_CACHE_FOR_DOCKER_BUILD_IMAGE', description: 'use cache when building docker image')
+        booleanParam( name: 'USE_STAGE_PUSH_DOCKER_IMAGE', description: 'push docker image to docker hub')
+        booleanParam( name: 'USE_STAGE_DOCKER_CVE_SCAN', description: 'Test Security Vulnerability Exploits For Docker Image')
+        booleanParam( name: 'USE_STAGE_CODE_CHECKS', description: 'Check Code for Security Vulnerabilities')
     }
 
     environment {
         GIT_REPOSITORY_URL          = "$params.SET_GIT_REPOSITORY_URL"
         GIT_BRANCH_NAME             = "main"
-        // DOCKER_FILE                 = "dockerfile"
-        // DOCKER_REPOSITORY           = "mjhfvi/demo-project"
         DOCKER_REPOSITORY_TAG       = "$params.DOCKER_REPOSITORY_TAG"
-        // DOCKER_BUILD_FOLDER         = "develop-project/home-task-app-main"
         DOCKER_BUILD_USE_CACHE      = "$params.USE_CACHE_FOR_DOCKER_BUILD_IMAGE"
-        // DOCKER_FROM_IMAGE           = "python:3.9.18-slim"                      // Change Only if you need to Overwrite Default Image in dockerfile
-        STAGE_BUILD_DOCKER_IMAGE    = "$params.USE_STAGE_BUILD_DOCKER_IMAGE"    // "false"
-        STAGE_PUSH_DOCKER_IMAGE     = "$params.USE_STAGE_PUSH_DOCKER_IMAGE"     //"false"
-        STAGE_DOCKER_CVE_SCAN       = "$params.USE_STAGE_DOCKER_CVE_SCAN"        // "false"
-        STAGE_CODE_VALIDATION       = "$params.USE_STAGE_CODE_VALIDATION"        // "false"
-        STAGE_SECRET_LEAKS          = "$params.USE_STAGE_SECRET_LEAKS"        // "false"
-        STAGE_CODE_CHECKS           = "$params.USE_STAGE_CODE_CHECKS"        // "false"
-        // BUILD_NUMBER                = "$params.BUILD_NUMBER"
-        // RUN_JOB_NODE_NAME           = "$params.RUN_JOB_NODE_NAME"
+        STAGE_BUILD_DOCKER_IMAGE    = "$params.USE_STAGE_BUILD_DOCKER_IMAGE"            // Defaults to "false"
+        STAGE_PUSH_DOCKER_IMAGE     = "$params.USE_STAGE_PUSH_DOCKER_IMAGE"             // Defaults to "false"
+        STAGE_DOCKER_CVE_SCAN       = "$params.USE_STAGE_DOCKER_CVE_SCAN"               // Defaults to "false"
+        STAGE_CODE_VALIDATION       = "$params.USE_STAGE_CODE_VALIDATION"               // Defaults to "false"
+        STAGE_SECRET_LEAKS          = "$params.USE_STAGE_SECRET_LEAKS"                  // Defaults to "false"
+        STAGE_CODE_CHECKS           = "$params.USE_STAGE_CODE_CHECKS"                   // Defaults to "false"
         // ARTIFACTORY_SERVER       = "http://localhost:8082"
-        RUN_JOB_NODE_NAME           = "$params.RUN_JOB_NODE_NAME"
     }
 
     options {
@@ -89,25 +79,34 @@ pipeline {
             }
         }
 
-        stage('Code Checks') { when { expression { env.STAGE_CODE_CHECKS.toBoolean() && StageGitClone == 'SUCCESS' } }
+        stage('Code Checks') { // when { expression { env.STAGE_CODE_CHECKS.toBoolean() && StageGitClone == 'SUCCESS' } }
             parallel{
-                stage ('Code Validation') { when { expression { env.STAGE_SECRET_LEAKS.toBoolean() } }
+                stage ('Code Validation') { when { expression { env.STAGE_CODE_VALIDATION.toBoolean() && StageGitClone == 'SUCCESS' } }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script {
                                 try {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                    // def RUN_JOB_NODE_NAME = "${NODE_NAME}"
-                                    echo "Passing Working Node to Downstream: ${NODE_NAME}"
-                                    echo "Passing Build Number to Downstream: ${params.JOB_BUILD_NUMBER}"
+                                    env.GIT_COMMIT_EMAIL = sh(script: 'git --no-pager show -s --format=\'%ae\'', returnStdout: true).trim()
+                                    env.GIT_COMMIT_FULL_NAME = sh(script: 'git show -s --pretty=%an', returnStdout: true).trim()
+
+                                    echo "Passing Working Node to ${env.STAGE_NAME} Downstream: ${NODE_NAME}"
+                                    echo "Passing Build Number to ${env.STAGE_NAME} Downstream: ${params.JOB_BUILD_NUMBER}"
+                                    echo "Passing Workspace path to ${env.STAGE_NAME} Downstream: ${WORKSPACE}"
+                                    echo "Passing Git Committer Email to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_EMAIL}"
+                                    echo "Passing Git Committer Full Name to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_FULL_NAME}"
 
                                     def downstreamJob = build job: 'Storage_Pipelines/Templates_Pipeline_Code_Validation',
                                         parameters: [
                                             booleanParam(name: 'USE_STAGE_CODE_VALIDATION', value: "$params.USE_STAGE_CODE_VALIDATION"),
                                             string(name: 'RUN_JOB_NODE_NAME', value: "${env.NODE_NAME}"),
-                                            string(name: 'JOB_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}")
+                                            string(name: 'JOB_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}"),
+                                            string(name: 'JOB_WORKSPACE', value: "${WORKSPACE}"),
+                                            string(name: 'GIT_COMMIT_EMAIL', value: "${env.GIT_COMMIT_EMAIL}"),
+                                            string(name: 'GIT_COMMIT_FULL_NAME', value: "${env.GIT_COMMIT_FULL_NAME}")
                                         ]
+
                                     echo "Templates_Pipeline_Code_Validation job result: ${downstreamJob.result}"
                                     } catch (ERROR) {
                                         echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
@@ -120,31 +119,34 @@ pipeline {
                         }
                     }
 
-                stage ('Secret Leaks') { when { expression { env.STAGE_SECRET_LEAKS.toBoolean() } }
+                stage ('Secret Leaks') { when { expression { env.STAGE_SECRET_LEAKS.toBoolean() && StageGitClone == 'SUCCESS' } }
                     steps {
                         timeout(activity: true, time: 5, unit: 'MINUTES') {
                             script{
                                 try {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
-                                    // def RUN_JOB_NODE_NAME = "${NODE_NAME}"
-                                    echo "Passing Working Node to Downstream: ${env.NODE_NAME}"
-                                    echo "Passing Build Number to Downstream: ${params.JOB_BUILD_NUMBER}"
 
-                                    // def CHANGE_BUILD_NUMBER = "${params.JOB_BUILD_NUMBER}"
-                                    // currentBuild.displayName = "#${CHANGE_BUILD_NUMBER}"
+                                    // env.GIT_COMMIT_EMAIL = sh(script: 'git --no-pager show -s --format=\'%ae\'', returnStdout: true).trim()
+                                    // env.GIT_COMMIT_FULL_NAME = sh(script: 'git show -s --pretty=%an', returnStdout: true).trim()
+
+                                    echo "Passing Working Node to ${env.STAGE_NAME} Downstream: ${NODE_NAME}"
+                                    echo "Passing Build Number to ${env.STAGE_NAME} Downstream: ${params.JOB_BUILD_NUMBER}"
+                                    echo "Passing Workspace path to ${env.STAGE_NAME} Downstream: ${WORKSPACE}"
+                                    echo "Passing Git Committer Email to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_EMAIL}"
+                                    echo "Passing Git Committer Full Name to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_FULL_NAME}"
 
                                     def downstreamJob = build job: 'Storage_Pipelines/Templates_Pipeline_Secret_Leaks',
                                         parameters: [
-                                            // string(name: 'SET_GIT_REPOSITORY_URL', value: "$params.SET_GIT_REPOSITORY_URL"),
+                                            booleanParam(name: 'USE_STAGE_SECRET_LEAKS', value: "$params.USE_STAGE_SECRET_LEAKS"),
                                             string(name: 'DOCKER_REPOSITORY_TAG', value: "$params.DOCKER_REPOSITORY_TAG"),
                                             string(name: 'DOCKER_BUILD_IMAGE', value: "$env.DOCKER_BUILD_IMAGE"),
-                                            // booleanParam(name: 'STAGE_BUILD_DOCKER_IMAGE', value: "$params.STAGE_BUILD_DOCKER_IMAGE"),
-                                            // booleanParam(name: 'USE_CACHE_FOR_DOCKER_BUILD_IMAGE', value: "$params.USE_CACHE_FOR_DOCKER_BUILD_IMAGE"),
-                                            // booleanParam(name: 'USE_STAGE_PUSH_DOCKER_IMAGE', value: "$params.USE_STAGE_PUSH_DOCKER_IMAGE"),
-                                            booleanParam(name: 'USE_STAGE_SECRET_LEAKS', value: "$params.USE_STAGE_SECRET_LEAKS"),
                                             string(name: 'RUN_JOB_NODE_NAME', value: "${env.NODE_NAME}"),
-                                            string(name: 'CHANGE_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}")
+                                            string(name: 'CHANGE_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}"),
+                                            string(name: 'JOB_WORKSPACE', value: "${WORKSPACE}"),
+                                            string(name: 'GIT_COMMIT_EMAIL', value: "${env.GIT_COMMIT_EMAIL}"),
+                                            string(name: 'GIT_COMMIT_FULL_NAME', value: "${env.GIT_COMMIT_FULL_NAME}")
                                         ]
+
                                     echo "Templates_Pipeline_Secret_Leaks job result: ${downstreamJob.result}"
                                     } catch (ERROR) {
                                         echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
@@ -197,6 +199,7 @@ pipeline {
                                     dir("${env.DOCKER_BUILD_FOLDER}") {
                                         DOCKER_BUILD_IMAGE = docker.build("${env.DOCKER_REPOSITORY}:${env.DOCKER_REPOSITORY_TAG}", "-f ${env.DOCKER_BUILD_FILE} --build-arg BASE_OS_VERSION=${env.DOCKER_FROM_IMAGE} --no-cache --memory=100m .")
                                     }
+
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
@@ -229,9 +232,8 @@ pipeline {
                         try {
                             echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                            script {
-                                DOCKER_BUILD_IMAGE.push()
-                                }
+                            script { DOCKER_BUILD_IMAGE.push() }
+
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'
@@ -257,25 +259,36 @@ pipeline {
             }
         }
 
-        stage ('Docker CVE Tests') { when { expression { env.STAGE_DOCKER_CVE_SCAN.toBoolean() } }
+        stage ('Docker CVE Tests') { when { expression { env.STAGE_DOCKER_CVE_SCAN.toBoolean() && StageGitClone == 'SUCCESS' } }
             steps {
                 timeout(activity: true, time: 5, unit: 'MINUTES') {
                     script{
                         try {
                             echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                            echo "Passing Working Node to Downstream: ${NODE_NAME}"
+                                    env.GIT_COMMIT_EMAIL = sh(script: 'git --no-pager show -s --format=\'%ae\'', returnStdout: true).trim()
+                                    env.GIT_COMMIT_FULL_NAME = sh(script: 'git show -s --pretty=%an', returnStdout: true).trim()
+
+                                    echo "Passing Working Node to ${env.STAGE_NAME} Downstream: ${NODE_NAME}"
+                                    echo "Passing Build Number to ${env.STAGE_NAME} Downstream: ${params.JOB_BUILD_NUMBER}"
+                                    echo "Passing Workspace path to ${env.STAGE_NAME} Downstream: ${WORKSPACE}"
+                                    echo "Passing Git Committer Email to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_EMAIL}"
+                                    echo "Passing Git Committer Full Name to ${env.STAGE_NAME} Downstream: ${env.GIT_COMMIT_FULL_NAME}"
 
                             def downstreamJob = build job: 'Storage_Pipelines/Templates_Pipeline_Docker_CVE',
                                 parameters: [
-                                    // string(name: 'SET_GIT_REPOSITORY_URL', value: "$params.SET_GIT_REPOSITORY_URL"),
+                                    booleanParam(name: 'USE_STAGE_CVE_TESTS', value: "$params.USE_STAGE_CVE_TESTS"),
                                     string(name: 'DOCKER_REPOSITORY_TAG', value: "$params.DOCKER_REPOSITORY_TAG"),
                                     string(name: 'DOCKER_BUILD_IMAGE', value: "$env.DOCKER_BUILD_IMAGE"),
-                                    booleanParam(name: 'USE_STAGE_CVE_TESTS', value: "$params.USE_STAGE_CVE_TESTS"),
                                     string(name: 'RUN_JOB_NODE_NAME', value: "${env.NODE_NAME}"),
-                                    string(name: 'JOB_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}")
+                                    string(name: 'JOB_BUILD_NUMBER', value: "${params.JOB_BUILD_NUMBER}"),
+                                    string(name: 'JOB_WORKSPACE', value: "${WORKSPACE}"),
+                                    string(name: 'GIT_COMMIT_EMAIL', value: "${env.GIT_COMMIT_EMAIL}"),
+                                    string(name: 'GIT_COMMIT_FULL_NAME', value: "${env.GIT_COMMIT_FULL_NAME}")
                                 ]
+
                             echo "Templates_Pipeline_Docker_CVE job result: ${downstreamJob.result}"
+
                         } catch (ERROR) {
                             echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                             currentBuild.result = 'FAILURE'

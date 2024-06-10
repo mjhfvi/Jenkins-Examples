@@ -5,10 +5,6 @@ pipeline {
         // STAGE_CODE_VALIDATION            = "$params.STAGE_CODE_VALIDATION"    // "false"
         STAGE_SECRET_LEAKS_AWS              = "false"
         STAGE_SECRET_LEAKS_PASSWORD         = "false"
-        // STAGE_SECRET_LEAKS                  = "false"
-        // STAGE_SECRET_LEAKS                  = "false"
-        RUN_JOB_NODE_NAME                   = "$params.RUN_JOB_NODE_NAME"
-        CHANGE_BUILD_NUMBER                 = "$params.CHANGE_BUILD_NUMBER"
     }
 
     options {
@@ -21,12 +17,18 @@ pipeline {
         stage('Secret Leaks') {
             parallel{
                 stage('Search AWS Credentials') { when { expression { env.STAGE_SECRET_LEAKS_AWS.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 10, unit: 'MINUTES') {
                             script {
                                 try {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
                                 } catch (Exception ERROR) {
                                     echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                     currentBuild.result = 'FAILURE'
@@ -39,12 +41,18 @@ pipeline {
                 }
 
                 stage('Search Passwords') { when { expression { env.STAGE_SECRET_LEAKS_PASSWORD.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         timeout(activity: true, time: 10, unit: 'MINUTES') {
                             script {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
                                 } catch (Exception ERROR) {
                                     echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                     currentBuild.result = 'FAILURE'
@@ -58,11 +66,11 @@ pipeline {
             }
         }
         stage ('Update Build Info') {
-            // agent { label "${env.RUN_JOB_NODE_NAME}" }
             steps {
                 script{
                     try {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
                         def UPSTREAM_BUILD_NUMBER   = "${params.CHANGE_BUILD_NUMBER}"
                         echo "Current Build number is ${UPSTREAM_BUILD_NUMBER}"
 

@@ -2,16 +2,14 @@ pipeline {
     agent none
 
     environment {
-        // STAGE_CODE_VALIDATION                   = "$params.STAGE_CODE_VALIDATION"    // "false"
-        STAGE_CODE_VALIDATION_LINTING_PYTHON    = "false"
+        STAGE_CODE_VALIDATION_LINTING_PYTHON    = "true"
         STAGE_CODE_VALIDATION_LINTING_GO        = "false"
         STAGE_CODE_VALIDATION_LINTING_YAML      = "false"
         STAGE_CODE_VALIDATION_LINTING_XML       = "false"
         STAGE_CODE_VALIDATION_LINTING_JSON      = "false"
         STAGE_CODE_VALIDATION_LINTING_MARKDOWN  = "false"
         STAGE_CODE_SPELLING                     = "false"
-        RUN_JOB_NODE_NAME                       = "$params.RUN_JOB_NODE_NAME"
-        CHANGE_BUILD_NUMBER                     = "$params.CHANGE_BUILD_NUMBER"
+        // AUTOPEP8_HOME                           = tool name: 'Autopep8', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
     }
 
     options {
@@ -24,47 +22,49 @@ pipeline {
         stage('CodeValidation') {
             parallel{
                 stage('Linting Python') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_PYTHON.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // def String RUN_RESULT
+                                RUN_RESULT = sh( script: '/home/tzahi/.local/bin/autopep8 -v --in-place --recursive .', returnStdout: true ).trim()
+
+                                // def RUN_RESULT = sh( script: '/home/tzahi/.local/bin/autopep8 -v --in-place --recursive .', returnStdout: true ).trim()
+                                // echo "${GIT_COMMIT_FULL_NAME}"
+
+                                echo "Sending Result to ${params.GIT_COMMIT_FULL_NAME} using email: ${params.GIT_COMMIT_EMAIL}"
+
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
-                            // - repo: https://github.com/pre-commit/pre-commit-hooks
-                            //     rev: v4.5.0
-                            //     hooks:
-                            //     - id: check-yaml
-                            //         verbose: true
-                            //         args: [--allow-multiple-documents]
-
-                            // - repo: https://github.com/asottile/reorder-python-imports
-                            //     rev: v3.12.0
-                            //     hooks:
-                            //     - id: reorder-python-imports
-                            //         name: reorder-python-imports (Tool for automatically reordering python imports)
-                            //         args: [--py39-plus, --add-import, from __future__ import annotations]
-                            //         exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
-
-                            // - repo: https://github.com/hhatto/autopep8
-                            //     rev: v2.0.4
-                            //     hooks:
-                            //     - id: autopep8
-                            //         name: autopep8 (Style Guide Enforcement)
                         }
                     }
                 }
 
                 stage('Linting Go') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_GO.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
@@ -76,99 +76,146 @@ pipeline {
                 }
 
                 stage('Linting YAML') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_MARKDOWN.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try{
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                // - repo: github.com/igorshubovych/markdownlint-cli
+                                //     rev: v0.41.0
+                                //     hooks:  # Use yamlfix to fix yaml files
+                                //     - id: markdownlint
+                                //         name: markdownlint (linter for Markdown files)
+
+                                // - repo: https://github.com/pre-commit/pre-commit-hooks
+                                //     rev: v4.5.0
+                                //     hooks:
+                                //     - id: check-yaml
+                                //         verbose: true
+                                //         args: [--allow-multiple-documents]
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
-                            // - repo: github.com/igorshubovych/markdownlint-cli
-                            //     rev: v0.41.0
-                            //     hooks:  # Use yamlfix to fix yaml files
-                            //     - id: markdownlint
-                            //         name: markdownlint (linter for Markdown files)
                         }
                     }
                 }
 
                 stage('Linting XML') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_XML.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try {
                                 echo '\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m'
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                // - repo: https://github.com/pre-commit/pre-commit-hooks
+                                //     rev: v4.5.0
+                                //     hooks:
+                                //     - id: check-xml
+                                //         verbose: true
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
-                            // - repo: https://github.com/pre-commit/pre-commit-hooks
-                            //     rev: v4.5.0
-                            //     hooks:
-                            //     - id: check-xml
-                            //         verbose: true
                         }
                     }
                 }
 
                 stage('Linting JSON') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_JSON.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+
+                                // - repo: https://github.com/pre-commit/pre-commit-hooks
+                                //     rev: v4.5.0
+                                //     hooks:
+                                //     - id: check-json
+                                //         verbose: true
+                                //     - id: pretty-format-json
+                                //         verbose: true
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
-                            // - repo: https://github.com/pre-commit/pre-commit-hooks
-                            //     rev: v4.5.0
-                            //     hooks:
-                            //     - id: check-json
-                            //         verbose: true
-                            //     - id: pretty-format-json
-                            //         verbose: true
                         }
                     }
                 }
 
                 stage('Linting Markdown') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_JSON.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script{
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                // - repo: https://github.com/pre-commit/pre-commit-hooks
+                                //     rev: v4.5.0
+                                //     hooks:
+                                //     - id: check-json
+                                //         verbose: true
+                                //     - id: pretty-format-json
+                                //         verbose: true
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
-                            // - repo: https://github.com/pre-commit/pre-commit-hooks
-                            //     rev: v4.5.0
-                            //     hooks:
-                            //     - id: check-json
-                            //         verbose: true
-                            //     - id: pretty-format-json
-                            //         verbose: true
                         }
                     }
                 }
 
                 stage('Spelling') { when { expression { env.STAGE_CODE_SPELLING.toBoolean() } }
-                    agent { label "${env.RUN_JOB_NODE_NAME}" }
+                    agent {
+                        node {
+                            label "${params.RUN_JOB_NODE_NAME}"
+                            customWorkspace "${params.JOB_WORKSPACE}"
+                            }
+                        }
                     steps {
                         script {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                // - repo: https://github.com/crate-ci/typos
+                                //     rev: v1.18.2
+                                //     hooks:
+                                //     - id: typos
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
@@ -176,11 +223,6 @@ pipeline {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                             }
                         }
-
-                            // - repo: https://github.com/crate-ci/typos
-                            //     rev: v1.18.2
-                            //     hooks:
-                            //     - id: typos
                     }
                 }
             }
