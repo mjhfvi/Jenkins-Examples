@@ -21,7 +21,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')                                 // Overall Time for the Build to Run
+        timeout(time: 5, unit: 'MINUTES')                                 // Overall Time for the Build to Run
         skipStagesAfterUnstable()
         ansiColor('xterm')
     }
@@ -29,7 +29,7 @@ pipeline {
     stages {
         stage('SecurityTests') {
             parallel{
-                stage('Docker Scout CVES') { when { expression { env.STAGE_SECURITY_TESTS_DOCKER_SCOUT.toBoolean() } }
+                stage('Docker Scout CVE') { when { expression { env.STAGE_SECURITY_TESTS_DOCKER_SCOUT.toBoolean() } }
                     agent {
                         node {
                             label "${params.RUN_JOB_NODE_NAME}"
@@ -60,9 +60,23 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                DockerScoutCVE = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                DockerScoutCVE = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
-                stage('Xray scan') { when { expression { env.STAGE_SECURITY_TESTS_XRAY_SCAN.toBoolean() } }
+                stage('Xray Scan') { when { expression { env.STAGE_SECURITY_TESTS_XRAY_SCAN.toBoolean() } }
                     agent {
                         node {
                             label "${params.RUN_JOB_NODE_NAME}"
@@ -88,6 +102,20 @@ pipeline {
                                 } finally {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                                 }
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                XrayScan = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                XrayScan = 'SUCCESS'
                             }
                         }
                     }
@@ -120,6 +148,20 @@ pipeline {
                                 } finally {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                                 }
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                SonarQubeAnalysis = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                SonarQubeAnalysis = 'SUCCESS'
                             }
                         }
                     }
@@ -161,6 +203,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                GitGuardianScan = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                GitGuardianScan = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('GitLeaks Scan') { when { expression { env.STAGE_SECURITY_TESTS_GITLEAKS.toBoolean() } }
@@ -197,6 +253,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                GitLeaksScan = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                GitLeaksScan = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -207,8 +277,12 @@ pipeline {
                     try {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                        echo "Build Number from Upstream is: ${params.JOB_BUILD_NUMBER}"
-                        echo "Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}"
+                        echo """
+=============================================================
+Upstream Build Number is: ${params.JOB_BUILD_NUMBER}
+Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}
+=============================================================
+"""
                         currentBuild.displayName = "#${params.JOB_BUILD_NUMBER}"
 
                     } catch (ERROR) {

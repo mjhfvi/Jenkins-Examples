@@ -13,7 +13,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')                                 // Overall Time for the Build to Run
+        timeout(time: 3, unit: 'MINUTES')                                 // Overall Time for the Build to Run
         skipStagesAfterUnstable()
         ansiColor('xterm')
     }
@@ -39,13 +39,27 @@ pipeline {
                                 // def RUN_RESULT = sh( script: '/home/tzahi/.local/bin/autopep8 -v --in-place --recursive .', returnStdout: true ).trim()
                                 // echo "${GIT_COMMIT_FULL_NAME}"
 
-                                echo "Sending Result to ${params.GIT_COMMIT_FULL_NAME} using email: ${params.GIT_COMMIT_EMAIL}"
+                                echo "Sending ${env.STAGE_NAME} Result to ${params.GIT_COMMIT_FULL_NAME} using email: ${params.GIT_COMMIT_EMAIL}"
 
                             } catch (ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingPython = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingPython = 'SUCCESS'
                             }
                         }
                     }
@@ -70,6 +84,20 @@ pipeline {
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingGo = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingGo = 'SUCCESS'
                             }
                         }
                     }
@@ -108,6 +136,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingYAML = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingYAML = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('Linting XML') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_XML.toBoolean() } }
@@ -133,6 +175,20 @@ pipeline {
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingXMP = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingXML = 'SUCCESS'
                             }
                         }
                     }
@@ -167,6 +223,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingJSON = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingJSON = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('Linting Markdown') { when { expression { env.STAGE_CODE_VALIDATION_LINTING_JSON.toBoolean() } }
@@ -197,9 +267,23 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                LintingMarkdown = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                LintingMarkdown = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
-                stage('Spelling') { when { expression { env.STAGE_CODE_SPELLING.toBoolean() } }
+                stage('Code Spelling') { when { expression { env.STAGE_CODE_SPELLING.toBoolean() } }
                     agent {
                         node {
                             label "${params.RUN_JOB_NODE_NAME}"
@@ -224,6 +308,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -235,8 +333,12 @@ pipeline {
                     try {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                        echo "Build Number from Upstream is: ${params.JOB_BUILD_NUMBER}"
-                        echo "Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}"
+                        echo """
+=============================================================
+Upstream Build Number is: ${params.JOB_BUILD_NUMBER}
+Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}
+=============================================================
+"""
                         currentBuild.displayName = "#${params.JOB_BUILD_NUMBER}"
 
                     } catch (ERROR) {

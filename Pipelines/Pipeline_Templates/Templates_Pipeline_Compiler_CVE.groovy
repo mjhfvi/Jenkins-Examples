@@ -20,7 +20,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')                                 // Overall Time for the Build to Run
+        timeout(time: 3, unit: 'MINUTES')                                 // Overall Time for the Build to Run
         skipStagesAfterUnstable()
         ansiColor('xterm')
     }
@@ -54,6 +54,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('Bandit Scan') { when { expression { env.STAGE_SECURITY_TESTS_XRAY_SCAN.toBoolean() } }
@@ -77,6 +91,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('PyUp Scan') { when { expression { env.STAGE_SECURITY_TESTS_SONARQUBE.toBoolean() } }
@@ -97,6 +125,20 @@ pipeline {
                                 } finally {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                                 }
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
                             }
                         }
                     }
@@ -131,6 +173,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('Trivy Scan') { when { expression { env.STAGE_SECURITY_TESTS_GITLEAKS.toBoolean() } }
@@ -157,6 +213,20 @@ pipeline {
                                 } finally {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m"
                                 }
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                CodeSpelling = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                CodeSpelling = 'SUCCESS'
                             }
                         }
                     }

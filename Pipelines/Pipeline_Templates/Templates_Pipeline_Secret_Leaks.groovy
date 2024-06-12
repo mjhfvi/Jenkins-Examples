@@ -8,7 +8,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')                                 // Overall Time for the Build to Run
+        timeout(time: 3, unit: 'MINUTES')                                 // Overall Time for the Build to Run
         skipStagesAfterUnstable()
         ansiColor('xterm')
     }
@@ -38,6 +38,20 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                SearchAWSCredentials = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                SearchPasswords = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
 
                 stage('Search Passwords') { when { expression { env.STAGE_SECRET_LEAKS_PASSWORD.toBoolean() } }
@@ -62,21 +76,37 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        failure {
+                            script{
+                                echo "\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m"
+                                SearchPasswords = 'FAILURE'
+                            }
+                        }
+                        success {
+                            script{
+                                echo "\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m"
+                                SearchPasswords = 'SUCCESS'
+                            }
+                        }
+                    }
                 }
             }
         }
+
         stage ('Update Build Info') {
             steps {
                 script{
                     try {
                         echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                        def UPSTREAM_BUILD_NUMBER   = "${params.CHANGE_BUILD_NUMBER}"
-                        echo "Current Build number is ${UPSTREAM_BUILD_NUMBER}"
-
-                        def CHANGE_BUILD_NUMBER     = "${UPSTREAM_BUILD_NUMBER}"
-                        currentBuild.displayName    = "#${CHANGE_BUILD_NUMBER}"
-                        echo "Changing Build number to ${CHANGE_BUILD_NUMBER}"
+                        echo """
+=============================================================
+Upstream Build Number is: ${params.JOB_BUILD_NUMBER}
+Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}
+=============================================================
+"""
+                        currentBuild.displayName = "#${params.JOB_BUILD_NUMBER}"
 
                     } catch (ERROR) {
                         echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
