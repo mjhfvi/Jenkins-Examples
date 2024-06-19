@@ -9,7 +9,6 @@ pipeline {
         STAGE_CODE_VALIDATION_LINTING_JSON      = "false"
         STAGE_CODE_VALIDATION_LINTING_MARKDOWN  = "false"
         STAGE_CODE_SPELLING                     = "false"
-        // AUTOPEP8_HOME                           = tool name: 'Autopep8', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
     }
 
     options {
@@ -33,15 +32,11 @@ pipeline {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // def String RUN_RESULT
                                 RUN_RESULT = sh( script: '/home/tzahi/.local/bin/autopep8 -v --in-place --recursive .', returnStdout: true ).trim()
-
-                                // def RUN_RESULT = sh( script: '/home/tzahi/.local/bin/autopep8 -v --in-place --recursive .', returnStdout: true ).trim()
-                                // echo "${GIT_COMMIT_FULL_NAME}"
 
                                 echo "Sending ${env.STAGE_NAME} Result to ${params.GIT_COMMIT_FULL_NAME} using email: ${params.GIT_COMMIT_EMAIL}"
 
-                            } catch (ERROR) {
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -77,9 +72,9 @@ pipeline {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                RUN_RESULT = sh (script: 'golangci-lint run -v .', returnStdout: true).trim()
 
-                            } catch (ERROR) {
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -115,20 +110,9 @@ pipeline {
                             try{
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
-                                // - repo: github.com/igorshubovych/markdownlint-cli
-                                //     rev: v0.41.0
-                                //     hooks:  # Use yamlfix to fix yaml files
-                                //     - id: markdownlint
-                                //         name: markdownlint (linter for Markdown files)
+                                RUN_RESULT = sh( script: '/home/tzahi/.local/bin/yamllint .', returnStdout: true ).trim()
 
-                                // - repo: https://github.com/pre-commit/pre-commit-hooks
-                                //     rev: v4.5.0
-                                //     hooks:
-                                //     - id: check-yaml
-                                //         verbose: true
-                                //         args: [--allow-multiple-documents]
-                            } catch (ERROR) {
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -164,13 +148,10 @@ pipeline {
                             try {
                                 echo '\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m'
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
-                                // - repo: https://github.com/pre-commit/pre-commit-hooks
-                                //     rev: v4.5.0
-                                //     hooks:
-                                //     - id: check-xml
-                                //         verbose: true
-                            } catch (ERROR) {
+                                RUN_RESULT = sh( script: '/home/tzahi/.local/bin/xmllint --timing --valid --noout *.xml', returnStdout: true ).trim()
+                                RUN_RESULT = sh( script: 'pre-commit run -a check-xml', returnStdout: true ).trim()
+
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -206,16 +187,11 @@ pipeline {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
+                                RUN_RESULT = sh( script: 'check-jsonschema -v --builtin-schema *.json', returnStdout: true ).trim()
+                                RUN_RESULT = sh( script: 'pre-commit run -a pretty-format-json', returnStdout: true ).trim()
+                                RUN_RESULT = sh( script: 'pre-commit run -a check-json', returnStdout: true ).trim()
 
-                                // - repo: https://github.com/pre-commit/pre-commit-hooks
-                                //     rev: v4.5.0
-                                //     hooks:
-                                //     - id: check-json
-                                //         verbose: true
-                                //     - id: pretty-format-json
-                                //         verbose: true
-                            } catch (ERROR) {
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -251,15 +227,9 @@ pipeline {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
-                                // - repo: https://github.com/pre-commit/pre-commit-hooks
-                                //     rev: v4.5.0
-                                //     hooks:
-                                //     - id: check-json
-                                //         verbose: true
-                                //     - id: pretty-format-json
-                                //         verbose: true
-                            } catch (ERROR) {
+                                RUN_RESULT = sh( script: 'mdl .', returnStdout: true ).trim()
+
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -295,12 +265,9 @@ pipeline {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
 
-                                // RUN_RESULT = dir("${params.JOB_WORKSPACE}") { sh (script: 'autopep8 -v --in-place --recursive .', returnStdout: true).trim() }
-                                // - repo: https://github.com/crate-ci/typos
-                                //     rev: v1.18.2
-                                //     hooks:
-                                //     - id: typos
-                            } catch (ERROR) {
+                                RUN_RESULT = sh( script: 'typos', returnStdout: true ).trim()
+
+                            } catch (Exception ERROR) {
                                 echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                                 currentBuild.result = 'FAILURE'
                             } finally {
@@ -341,7 +308,7 @@ Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}
 """
                         currentBuild.displayName = "#${params.JOB_BUILD_NUMBER}"
 
-                    } catch (ERROR) {
+                    } catch (Exception ERROR) {
                         echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                         currentBuild.result = 'FAILURE'
                     } finally {

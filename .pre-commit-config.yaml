@@ -29,8 +29,9 @@ repos:
         verbose: true
       - id: pretty-format-json
         verbose: true
-  # - id: detect-aws-credentials
-  # - id: detect-private-key
+      - id: detect-aws-credentials
+        verbose: true
+      - id: detect-private-key
         name: pre-commit-hooks (out-of-the-box hooks for pre-commit)
         exclude: gitleaks-report.json
   - repo: https://github.com/Lucas-C/pre-commit-hooks

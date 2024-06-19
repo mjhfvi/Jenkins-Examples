@@ -2,7 +2,6 @@ pipeline {
     agent none
 
     environment {
-        // STAGE_CODE_VALIDATION            = "$params.STAGE_CODE_VALIDATION"    // "false"
         STAGE_SECRET_LEAKS_AWS              = "false"
         STAGE_SECRET_LEAKS_PASSWORD         = "false"
     }
@@ -28,6 +27,9 @@ pipeline {
                             script {
                                 try {
                                     echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                RUN_RESULT = sh( script: 'pre-commit run detect-aws-credentials -a', returnStdout: true ).trim()
+                                RUN_RESULT = sh( script: 'pre-commit run detect-private-key -a', returnStdout: true ).trim()
 
                                 } catch (Exception ERROR) {
                                     echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
@@ -66,6 +68,8 @@ pipeline {
                             script {
                             try {
                                 echo "\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m"
+
+                                RUN_RESULT = sh( script: 'pre-commit run gitleaks -a', returnStdout: true ).trim()
 
                                 } catch (Exception ERROR) {
                                     echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
@@ -108,7 +112,7 @@ Changing Build Number to Upstream Number: ${params.JOB_BUILD_NUMBER}
 """
                         currentBuild.displayName = "#${params.JOB_BUILD_NUMBER}"
 
-                    } catch (ERROR) {
+                    } catch (Exception ERROR) {
                         echo "\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m"
                         currentBuild.result = 'FAILURE'
                     } finally {
