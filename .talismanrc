@@ -2,36 +2,20 @@
 # consider pasting the following format in .talismanrc file in the project root
 ---
 fileignoreconfig:
-  - filename: .yamllint.yaml
-    checksum: 268cb8045ae68ca3560f8feb149bfbfde96aaed8b38853e305d6de5d0221ab93
-  - filename: tools/barchartGitTagList.groovy
-    checksum: 4df882ded78a26ce3bf8a9ecc45c3af3f29b6b00734958441a32f40429f2de09
-  - filename: Pipelines/Examples/Templates_Pipeline_Continuous Deployment.groovy
-    checksum: b500809e8a4919dde22b76362b361815b06b4669466199ed3cc8e8eb7fc7296a
-  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_Continuous_Deployment.groovy
-    checksum: ad30f8dc4039c0ec88af84a7f72761acc51571038388d292569e0a7d9e80f4ca
-  - filename: .pre-commit-config.yaml
-    checksum: 3f8a3dfe10559b17390f503029e7200934771d1f0903f2e06423fffe135d083f
-  - filename: Pipelines/Examples/Pipeline_Build_Terraform.groovy
-    checksum: 301c869396a9357364cfb99e7e23f2dfa73ef443ce87e7f82718601c75f216e5
-  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_Terraform.groovy
-    checksum: 9a73f19c6362f0a12f585514d230d8ea97bf012825cce4248685826b5731c6eb
-  - filename: Pipelines/Pipeline_Templates/Pipeline_Git_Code_Validation.groovy
-    checksum: d87c462ea889a1e3212459d5eb20bd6b7560f535c39a9f822d1ab0ce82f373ae
-  - filename: Pipelines/Examples/Templates_Pipeline_Docker.groovy
-    checksum: 338cd224ae7b9b25bcd2bbc8f30e21bda0adc6f7b389500061263d82e4144625
-  - filename: Pipelines/Pipeline_Templates/Pipeline_Build_Docker.groovy
-    checksum: 5b560dcce8a0364548a8d78887aa2e2b20326596a5f05798c6ae77e1229785ac
-  - filename: Pipelines/Examples/Templates_Pipeline_Git_Code.groovy
-    checksum: c26bb6f159e08a2e3800e39ac7f6133c1e31e931eaeeb4a42eab03ab28ff06ab
-  - filename: tools/barchartGitTagList.groovy
-    checksum: f3e3e26c51a763acaa64f8635071ed8ae3596b5c43e3378a676cfa16865c4ee1
-  - filename: tools/barchartGitTagList.groovy
-    checksum: f3e3e26c51a763acaa64f8635071ed8ae3596b5c43e3378a676cfa16865c4ee1
-  - filename: Pipelines/Examples/Pipeline_Build_Terraform.groovy
-    checksum: 002a02be8b17db4e67da0fd9942c5a72bb3fd5280ead0e0620cc6cafc15616a5
-  - filename: tools/barchartGitTagList.groovy
-    checksum: f3e3e26c51a763acaa64f8635071ed8ae3596b5c43e3378a676cfa16865c4ee1
-  - filename: Pipelines/Examples/Pipeline_Build_Terraform.groovy
-    checksum: 002a02be8b17db4e67da0fd9942c5a72bb3fd5280ead0e0620cc6cafc15616a5
+- filename: configuration-as-code/jcasc-default-config.yaml
+  checksum: f2b812db3f5ce8f878dcb4f85d2905880dab0b712c379acdacda66c5066a760f
+- filename: tools/barchartGitTagList.groovy
+  checksum: f3e3e26c51a763acaa64f8635071ed8ae3596b5c43e3378a676cfa16865c4ee1
+- filename: configuration-as-code/values-jenkins.yaml
+  checksum: 13fd743583955dbb316a5d2a0c0280598a7b453ced9b5521dd6278fa01211898
+- filename: configuration-as-code/jenkins-plugins.txt
+  checksum: 3535344e6428dac76b196063bc61287576952af3e79957f98025bd20567b0c61
+- filename: GroovyExamples/.pre-commit-config.yaml
+  checksum: ad38be594195c59c02e8cc3322f819c6ef447dfe39672945cb632dcc29d8d68c
+- filename: configuration-as-code/jcasc-custom-config.yaml
+  checksum: 0f066cc7eb06d961ead403a99d1f86340835e6eaf01163939341ca4709a21e19
+- filename: Pipelines/Pipeline_Templates/Pipeline_Build_Terraform.groovy
+  checksum: 9a73f19c6362f0a12f585514d230d8ea97bf012825cce4248685826b5731c6eb
+- filename: Pipelines/Examples/Pipeline_Build_Terraform.groovy
+  checksum: 002a02be8b17db4e67da0fd9942c5a72bb3fd5280ead0e0620cc6cafc15616a5
 version: ""

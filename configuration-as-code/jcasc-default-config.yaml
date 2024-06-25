@@ -1,0 +1,80 @@
+jenkins:
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+      - id: "${chart-admin-username}"
+        name: "Jenkins Admin"
+        password: "${chart-admin-password}"
+  disableRememberMe: false
+  mode: NORMAL
+  numExecutors: 0
+  labelString: ""
+  projectNamingStrategy: "standard"
+  markupFormatter:
+    plainText
+  clouds:
+  - kubernetes:
+      containerCapStr: "10"
+      defaultsProviderTemplate: ""
+      connectTimeout: "5"
+      readTimeout: "15"
+      jenkinsUrl: "http://localhost:8081"
+      jenkinsTunnel: "jenkins-agent.jenkins.svc.cluster.local:50000"
+      maxRequestsPerHostStr: "32"
+      retentionTimeout: "5"
+      waitForPodSec: "600"
+      name: "kubernetes"
+      namespace: "jenkins"
+      restrictedPssSecurityContext: false
+      serverUrl: "https://kubernetes.default"
+      credentialsId: ""
+      podLabels:
+      - key: "jenkins/jenkins-jenkins-agent"
+        value: "true"
+      templates:
+        - name: "default"
+          namespace: "jenkins"
+          id: 89f524f204652e813c31d7f5d89008ca629bb549c953a985b0118b7d555569dc
+          containers:
+          - name: "jnlp"
+            alwaysPullImage: false
+            args: "^${computer.jnlpmac} ^${computer.name}"
+            envVars:
+              - envVar:
+                  key: "JENKINS_URL"
+                  value: http://localhost:8081
+            image: "jenkins/inbound-agent:3248.v65ecb_254c298-1"
+            privileged: "false"
+            resourceLimitCpu: 512m
+            resourceLimitMemory: 512Mi
+            resourceRequestCpu: 512m
+            resourceRequestMemory: 512Mi
+            ttyEnabled: false
+            workingDir: /home/jenkins/agent
+          idleMinutes: 0
+          instanceCap: 2147483647
+          label: "jenkins-jenkins-agent "
+          nodeUsageMode: "NORMAL"
+          podRetention: Never
+          showRawYaml: true
+          serviceAccount: "default"
+          slaveConnectTimeoutStr: "100"
+          yamlMergeStrategy: override
+          inheritYamlMergeStrategy: false
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: true
+security:
+  apiToken:
+    creationOfLegacyTokenEnabled: false
+    tokenGenerationOnCreationEnabled: false
+    usageStatisticsEnabled: true
+unclassified:
+  location:
+    adminAddress: mjhfvi@gmail.com
+    url: http://localhost:8081$
