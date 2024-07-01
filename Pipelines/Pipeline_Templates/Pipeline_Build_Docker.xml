@@ -1,0 +1,502 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1400.v7fd111b_ec82f">
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3903.v48a_8836749e9">
+    <script>pipeline {
+    agent { label &apos;linux&apos; }
+
+    parameters {
+        // separator(name: &quot;GIT&quot;, sectionHeader: &quot;Run Git Logic&quot;)
+        choice(choices: [&apos;JobAssignment&apos;, &apos;DockerExamples&apos;], name: &apos;SET_GIT_REPOSITORY_URL&apos;, description: &apos;Choose Git Repository&apos;)
+        choice(choices: [&apos;main&apos;, &apos;release&apos;, &apos;1.0&apos;], name: &apos;SET_GIT_REPOSITORY_BRANCH&apos;, description: &apos;Choose Git Repository Branch&apos;)
+        separator(name: &quot;DOCKER&quot;, sectionHeader: &quot;Run Docker  Steps&quot;)
+        string(defaultValue: &apos;00&apos;, name: &apos;SET_DOCKER_REPOSITORY_TAG&apos;, description: &apos;Set Docker Tag Number&apos;)
+        // string(defaultValue: &apos;&apos;, name: &apos;DOCKER_FROM_IMAGE&apos;, description: &apos;Choose Docker Base Image - use only for tag testing, otherwise update the dockerfile&apos;)
+        booleanParam(defaultValue: true, name: &apos;USE_STAGE_BUILD_DOCKER_IMAGE&apos;, description: &apos;Build Docker Image&apos;)
+        // booleanParam(defaultValue: true, name: &apos;USE_CACHE_FOR_DOCKER_BUILD_IMAGE&apos;, description: &apos;Use Cache When Building Docker Image&apos;)
+        booleanParam(defaultValue: false, name: &apos;USE_STAGE_DOCKER_UNITEST&apos;, description: &apos;Run Unitest for Docker Image&apos;)
+        // booleanParam(defaultValue: true, name: &apos;USE_STAGE_DOCKER_CVE_SCAN&apos;, description: &apos;Test Security Vulnerability Exploits For Docker Image&apos;)
+        booleanParam(defaultValue: false, name: &apos;USE_STAGE_PUSH_DOCKER_IMAGE&apos;, description: &apos;Push Docker Image to Repository&apos;)
+        booleanParam(defaultValue: false, name: &apos;USE_STAGE_CONTINUOUS_DEPLOYMENT&apos;, description: &apos;Push Docker Image to Repository&apos;)
+        separator(name: &quot;CLEANUP&quot;, sectionHeader: &quot;Run Cleanup Step&quot;)
+        booleanParam(defaultValue: false, name: &apos;RUN_CLEANUP&apos;, description: &apos;Cleanup Temporary Jenkins Files&apos;)
+    }
+
+    environment {
+        STAGE_SECURITY_TESTS_DOCKER_SCOUT       = &quot;true&quot;
+        STAGE_SECURITY_TESTS_XRAY_SCAN          = &quot;false&quot;
+        STAGE_SECURITY_TESTS_SONARQUBE          = &quot;false&quot;
+        STAGE_SECURITY_TESTS_GITGUARDIAN        = &quot;false&quot;
+        STAGE_SECURITY_TESTS_GITLEAKS           = &quot;false&quot;
+        DOCKER_BUILD_MEMORY_CACHE               = &quot;100M&quot;
+        API_PORT                                = &quot;5000&quot;
+        SERVER_IP                               = &quot;192.168.50.50&quot;
+        // DOCKER_FROM_IMAGE                    = &quot;3.9.18-slim&quot;
+    }
+
+    options {
+        timeout(time: 10, unit: &apos;MINUTES&apos;)                                 // Overall Time for the Build to Run
+        skipStagesAfterUnstable()
+        disableConcurrentBuilds()
+        ansiColor(&apos;xterm&apos;)
+    }
+
+    stages {
+        stage(&apos;Git Clone&apos;) {
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            checkout([$class: &apos;GitSCM&apos;, branches: [[name: &quot;${params.SET_GIT_REPOSITORY_BRANCH}&quot;]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: &apos;GitHub-SSH-Access-Credentials-to-JobAssignment-Git&apos;, url: &quot;git@github.com:mjhfvi/${params.SET_GIT_REPOSITORY_URL}.git&quot;]]])
+
+                            env.GIT_COMMIT_FULL_NAME = sh(script: &apos;git show -s --pretty=%an&apos;, returnStdout: true).trim()
+                            env.GIT_COMMIT_EMAIL = sh(script: &apos;git --no-pager show -s --format=\&apos;%ae\&apos;&apos;, returnStdout: true).trim()
+
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageGitClone = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageGitClone = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Build Docker Image&apos;) { when { expression { params.USE_STAGE_BUILD_DOCKER_IMAGE.toBoolean() &amp;&amp; StageGitClone == &apos;SUCCESS&apos;  } }
+            steps {
+                timeout(activity: true, time: 10, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            dir(&quot;jenkins&quot;) {
+                                load &quot;DOCKER_BUILD_INFORMATION.txt&quot;
+                            }
+
+                            dir(&quot;${env.DOCKER_BUILD_FOLDER}&quot;) {
+                                DOCKER_BUILD_IMAGE = docker.build(&quot;${env.DOCKER_REPOSITORY}:${params.SET_DOCKER_REPOSITORY_TAG}&quot;, &quot;-f ${env.DOCKER_BUILD_FILE} --memory=${env.DOCKER_BUILD_MEMORY_CACHE} .&quot;)
+                            }
+
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageBuildDockerImage = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageBuildDockerImage = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage(&apos;UniTest Docker Image&apos;) { when { expression { params.USE_STAGE_DOCKER_UNITEST.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 20, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            CONTAINER_ID = DOCKER_BUILD_IMAGE.run(&quot;--env=HOST_VAR=&apos;${env.SERVER_IP}&apos; -p &apos;${env.API_PORT}&apos;:&apos;${env.API_PORT}&apos;&quot;)
+
+                            echo &apos;Running Docker Container to Test Health Check with API call&apos;
+                            def response = httpRequest &quot;http://${env.SERVER_IP}:${env.API_PORT}/health&quot;
+                            def json = readJSON text: response.content
+                            if (json.version.version == &apos;1.0&apos; &amp;&amp; json.version.status == &apos;healthy&apos;) {
+                                echo &apos;\033[45m\033[97m\033[1mHealth Check Passed: Version is 1.0 and Status is Healthy. \033[0m&apos;
+                            } else {
+                                error &apos;\033[41m\033[97m\033[1mHealth Check Failed: Version is not 1.0 or Status is not Healthy.\033[0m&apos;
+                            }
+
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;Killing the Docker Container&quot;
+                            CONTAINER_ID.stop()
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} is a Failure, Sending Notifications\033[0m&quot;
+                        StageUniTestDockerImage = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} is Successfully, Sending Notifications\033[0m&quot;
+                        StageUniTestDockerImage = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Push Docker Image&apos;) { when { expression { params.USE_STAGE_PUSH_DOCKER_IMAGE.toBoolean() &amp;&amp; StageUniTestDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 20, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            docker.withRegistry(&apos;https://registry.hub.docker.com&apos;, &apos;Docker-Hub-Login-Credentials&apos;) {
+                                DOCKER_BUILD_IMAGE.push(&quot;${params.SET_DOCKER_REPOSITORY_TAG}&quot;)
+                                DOCKER_BUILD_IMAGE.push(&quot;latest&quot;)
+                            }
+
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StagePushDockerImage = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StagePushDockerImage = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage (&apos;Docker Scout CVE&apos;) { when { expression { env.STAGE_SECURITY_TESTS_DOCKER_SCOUT.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            // Install Docker Scout
+                            sh &quot;curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b ${params.JOB_WORKSPACE}/bin&quot;
+
+                            // Analyze critical or high vulnerabilities
+                            withCredentials([usernamePassword(credentialsId: &apos;Docker-Hub-Login-Credentials&apos;, passwordVariable: &apos;password&apos;, usernameVariable: &apos;username&apos;)]){
+                                sh &apos;&apos;&apos;echo ${password} | docker login -u ${username} --password-stdin&apos;&apos;&apos;
+                                sh( script: &quot;docker scout cves --format sarif --locations --ignore-base --output dockerscout.json &apos;${env.DOCKER_REPOSITORY}&apos;:&apos;${params.SET_DOCKER_REPOSITORY_TAG}&apos;&quot;, returnStdout: true ).trim()
+                                // sh( script: &quot;docker scout cves --format markdown --locations --ignore-base --output dockerscout.html &apos;${env.DOCKER_REPOSITORY}&apos;:&apos;${params.SET_DOCKER_REPOSITORY_TAG}&apos;&quot;, returnStdout: true ).trim()
+                            }
+
+                            archiveArtifacts artifacts: &apos;dockerscout.json&apos;, fingerprint: true
+
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageDockerScoutCVE = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageDockerScoutCVE = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage (&apos;Xray Scan&apos;) { when { expression { env.STAGE_SECURITY_TESTS_XRAY_SCAN.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script{
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            def scanConfig = [
+                                    &apos;buildName&apos;      : buildInfo.name,
+                                    &apos;buildNumber&apos;    : buildInfo.number,
+                                    &apos;failBuild&apos;      : true
+                            ]
+                            def scanResult = server.xrayScan scanConfig
+                            echo scanResult as String
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageXrayScan = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageXrayScan = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage (&apos;SonarQube Analysis&apos;) { when { expression { env.STAGE_SECURITY_TESTS_SONARQUBE.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script{
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            withCredentials([string(credentialsId: &apos;SonarQube-Access-Credentials&apos;, variable: &apos;SONAR_TOKEN&apos;)]) {
+                                sh &apos;/home/tzahi/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner -X -Dsonar.projectKey=localproject -Dsonar.sources=. -Dsonar.css.node=. -Dsonar.host.url=http://localhost:8088&apos;
+                            }
+
+                            def scannerHome = tool &apos;sonar-scanner&apos;;
+                                withSonarQubeEnv(&apos;LocalSonarQubeServer&apos;) { // If you have configured more than one global server connection, you can specify its name
+                                sh &apos;/home/tzahi/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner -X -Dsonar.projectKey=localproject -Dsonar.sources=. -Dsonar.css.node=. -Dsonar.host.url=http://localhost:8088&apos;
+                            }
+                        } catch (Exception ERROR) {
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageSonarQubeAnalysis = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageSonarQubeAnalysis = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage (&apos;GitGuardian Scan&apos;) { when { expression { env.STAGE_SECURITY_TESTS_GITGUARDIAN.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            environment {
+                GITGUARDIAN_API_KEY = credentials(&apos;GitGuardian-Access-Credentials&apos;)
+            }
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            sh(script: &apos;ggshield secret scan path . --recursive --show-secrets --exit-zero --output=ggshield-secret-report.json --json -y&apos;, label:&quot;GitGuardian Files and Folders Scan&quot;,returnStdout: false)
+                            // echo &apos;GitGuardian docker image scan&apos;
+                            // sh &apos;ggshield secret scan docker gitguardian/ggshield --output=ggshield.json --json --show-secrets --exit-zero&apos;
+                            archiveArtifacts artifacts: &apos;ggshield-secret-report.json&apos;, allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                            // sh(script: &apos;ggshield secret scan ci --show-secrets --exit-zero --output=ggshield-ci-report.json --json --debug&apos;, label:&quot;GitGuardian CI Scan&quot;, returnStdout: false)
+                            // archiveArtifacts artifacts: &apos;ggshield-ci-report.json&apos;, allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                        } catch (Exception ERROR) {
+                            def catchErrorHandling = &quot;${ERROR}&quot;
+                            if (catchErrorHandling.contains(&quot;exit code 1&quot;)) {
+                                sh (&quot;echo \033[41m\033[97m\033[1mGot Error: ${catchErrorHandling}\033[0m&quot;)
+                                sh (&quot;echo \033[41m\033[97m\033[1mSending Email to Admin\033[0m&quot;)
+                            }
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageGitGuardianScan = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageGitGuardianScan = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        stage (&apos;GitLeaks Scan&apos;) { when { expression { env.STAGE_SECURITY_TESTS_GITLEAKS.toBoolean() &amp;&amp; StageBuildDockerImage == &apos;SUCCESS&apos; } }
+            steps {
+                timeout(activity: true, time: 5, unit: &apos;MINUTES&apos;) {
+                    script {
+                        try {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+                            sh(script: &apos;gitleaks detect --report-path gitleaks-detect-report.json&apos;, returnStdout: false)
+                            def gitLeaksOutput = sh(script: &apos;gitleaks detect --baseline-path gitleaks-detect-report.json --report-path gitleaks-detect-findings.json&apos;, returnStdout: false)
+                            // def gitLeaksOutput = sh(script: &apos;gitleaks detect --report-path=./gitleaks-leaks-report.json&apos;, returnStdout: true).trim()
+                            echo &quot;GitLeaks Scan Output:&quot;
+                            echo gitLeaksOutput
+                            // writeFile(file: &quot;gitleaks-detect-report.json&quot;, text: gitLeaksOutput, encoding: &quot;UTF-8&quot;)
+                            archiveArtifacts artifacts: &apos;gitleaks-detect-report.json&apos;, allowEmptyArchive: false, onlyIfSuccessful: true // https://www.jenkins.io/doc/pipeline/steps/core/
+                        } catch (Exception ERROR) {
+                            def catchErrorHandling = &quot;${ERROR}&quot;
+                            if (catchErrorHandling.contains(&quot;exit code 1&quot;)) {
+                                sh (&quot;echo \033[41m\033[97m\033[1mGot Error: ${catchErrorHandling}\033[0m&quot;)
+                                sh (&quot;echo \033[41m\033[97m\033[1mSending Email to Admin\033[0m&quot;)
+                            }
+
+                            echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+                            currentBuild.result = &apos;FAILURE&apos;
+                        } finally {
+                            echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script{
+                        echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+                        StageGitLeaksScan = &apos;FAILURE&apos;
+                    }
+                }
+                success {
+                    script{
+                        echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+                        StageGitLeaksScan = &apos;SUCCESS&apos;
+                    }
+                }
+            }
+        }
+
+        // stage(&apos;Continuous Deployment&apos;) { when { expression { params.USE_STAGE_CONTINUOUS_DEPLOYMENT.toBoolean() &amp;&amp; BuildDockerImage == &apos;SUCCESS&apos; } }
+        //     steps {
+        //         timeout(activity: true, time: 20, unit: &apos;MINUTES&apos;) {
+        //             script {
+        //                 try {
+        //                     echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Started =====================\033[0m&quot;
+
+        //                     echo &quot;building ArgoCD Application for kubernetes&quot;
+        //                     dir(&quot;argocd&quot;){
+        //                         sh (&quot;kustomize build --enable-helm | kubectl apply -f -&quot;)
+        //                     }
+
+        //                     def ARGOCD_PASSWORD = sh(script: &quot;kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath={.data.password} | base64 -d&quot;, returnStdout: true)
+        //                     // echo &quot;ArgoCD Password: ${env.ARGOCD_PASSWORD}&quot;
+
+        //                     echo &quot;logging to ArgoCD Service on argocd.localhost&quot;
+        //                     sh (&quot;argocd login --username admin --password ${ARGOCD_PASSWORD} --insecure argocd.localhost&quot;)
+
+        //                     echo &quot;building Argocd Repository Configuration&quot;
+        //                     sh &quot;argocd repo add git@github.com:mjhfvi/JobAssignment.git --ssh-private-key-path JobAssignment_ssh_login_key_no_password_ed25519&quot;
+        //                     sh &quot;kubectl -f argocd-add-repo.yaml apply&quot;
+
+        //                     echo &quot;building my Application with ArgoCD&quot;
+        //                     dir(&quot;jobProject&quot;){
+        //                         sh (&quot;argocd app create job-project -f argocd-jobProject.yaml&quot;)
+        //                     }
+
+        //                 } catch (Exception ERROR) {
+        //                     echo &quot;\033[41m\033[97m\033[1mStep ${env.STAGE_NAME} Failed: ${ERROR}\033[0m&quot;
+        //                     currentBuild.result = &apos;FAILURE&apos;
+        //                 } finally {
+        //                     echo &quot;\033[42m\033[97m\033[1m ===================== Step ${env.STAGE_NAME} Done =====================\033[0m&quot;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         failure {
+        //             script{
+        //                 echo &quot;\033[41m\033[97m\033[1mThe ${env.STAGE_NAME} Build is a Failure, Sending Notifications\033[0m&quot;
+        //                 StagePushDockerImage = &apos;FAILURE&apos;
+        //             }
+        //         }
+        //         success {
+        //             script{
+        //                 // echo &quot;\033[42m\033[97mThe ${env.STAGE_NAME} Build is Successfully, Sending Notifications\033[0m&quot;
+        //                 StagePushDockerImage = &apos;SUCCESS&apos;
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+// Post Condition Blocks: always, changed, fixed, regression, aborted, failure, success, unstable, unsuccessful, not_built, cleanup
+    post {
+        aborted {
+            echo &quot;Pipeline is Aborted, Sending Email Notifications&quot;
+            addBadge(icon: &quot;delete.gif&quot;, text: &quot;Build Aborted&quot;)
+        }
+        unstable {
+            echo &quot;Pipeline is Unstable, Sending Email Notifications&quot;
+            addBadge(icon: &quot;warning.gif&quot;, text: &quot;Build Unstable&quot;)
+        }
+        failure {
+            echo &quot;Pipeline is a Failure, Sending Email Notifications&quot;
+            addBadge(icon: &quot;error.gif&quot;, text: &quot;Build Failure&quot;)
+        }
+        success {
+            echo &quot;Pipeline is Successfully, Sending Email Notifications&quot;
+            addBadge(icon: &quot;success.gif&quot;, text: &quot;Build Success&quot;)
+        }
+        always {
+            echo &quot;Pipeline is Done, Running Always Post Condition&quot;
+            cleanWs() // Clean workspace after each run
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

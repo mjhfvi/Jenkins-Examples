@@ -1,0 +1,116 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1400.v7fd111b_ec82f">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2198.v41dd8ef6dd56"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2198.v41dd8ef6dd56">
+      <jobProperties>
+        <string>org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty</string>
+      </jobProperties>
+      <triggers/>
+      <parameters>
+        <string>USE_STAGE_BUILD_DOCKER_IMAGE</string>
+        <string>DOCKER</string>
+        <string>SET_DOCKER_REPOSITORY_TAG</string>
+        <string>USE_STAGE_PUSH_DOCKER_IMAGE</string>
+        <string>USE_STAGE_CONTINUOUS_DEPLOYMENT</string>
+        <string>CLEANUP</string>
+        <string>SET_GIT_REPOSITORY_URL</string>
+        <string>RUN_CLEANUP</string>
+        <string>USE_STAGE_DOCKER_UNITEST</string>
+        <string>SET_GIT_REPOSITORY_BRANCH</string>
+      </parameters>
+      <options>
+        <string>skipStagesAfterUnstable</string>
+      </options>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SET_GIT_REPOSITORY_URL</name>
+          <description>Choose Git Repository</description>
+          <choices>
+            <string>JobAssignment</string>
+            <string>DockerExamples</string>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SET_GIT_REPOSITORY_BRANCH</name>
+          <description>Choose Git Repository Branch</description>
+          <choices>
+            <string>main</string>
+            <string>release</string>
+            <string>1.0</string>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <jenkins.plugins.parameter__separator.ParameterSeparatorDefinition plugin="parameter-separator@166.vd0120849b_386">
+          <name>DOCKER</name>
+          <sectionHeader>Run Docker  Steps</sectionHeader>
+        </jenkins.plugins.parameter__separator.ParameterSeparatorDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SET_DOCKER_REPOSITORY_TAG</name>
+          <description>Set Docker Tag Number</description>
+          <defaultValue>00</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>USE_STAGE_BUILD_DOCKER_IMAGE</name>
+          <description>Build Docker Image</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>USE_STAGE_DOCKER_UNITEST</name>
+          <description>Run Unitest for Docker Image</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>USE_STAGE_PUSH_DOCKER_IMAGE</name>
+          <description>Push Docker Image to Repository</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>USE_STAGE_CONTINUOUS_DEPLOYMENT</name>
+          <description>Push Docker Image to Repository</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <jenkins.plugins.parameter__separator.ParameterSeparatorDefinition plugin="parameter-separator@166.vd0120849b_386">
+          <name>CLEANUP</name>
+          <sectionHeader>Run Cleanup Step</sectionHeader>
+        </jenkins.plugins.parameter__separator.ParameterSeparatorDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_CLEANUP</name>
+          <description>Cleanup Temporary Jenkins Files</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+      <abortPrevious>false</abortPrevious>
+    </org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@3903.v48a_8836749e9">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@5.2.2">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://github.com/mjhfvi/JenkinsExamples.git</url>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/main</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="empty-list"/>
+      <extensions/>
+    </scm>
+    <scriptPath>Pipelines/Pipeline_Templates/Pipeline_Build_Docker.groovy</scriptPath>
+    <lightweight>true</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

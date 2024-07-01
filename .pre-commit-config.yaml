@@ -85,17 +85,20 @@ repos:
         stages: [commit]
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
-    hooks: # detect-secrets scan > .secrets.baseline | , '--disable-plugin', 'KeywordDetector'
+    hooks:  # detect-secrets scan > .secrets.baseline | , '--disable-plugin', 'KeywordDetector'
       - id: detect-secrets
         name: detect-secrets (module for detecting secrets)
-        args: ['--baseline', '.secrets.baseline', '--disable-plugin', 'KeywordDetector']
+        args: ['--baseline', '.secrets.baseline']
+        exclude: jenkins-plugins.txt
   - repo: https://github.com/zricethezav/gitleaks
     rev: v8.18.2
     hooks:
       - id: gitleaks
-      - id: gitleaks-docker
+      # - id: gitleaks-docker
         name: gitleaks (Gitleaks is for detecting and preventing hardcoded secrets)
-        exclude: .secrets.baseline
+        args: [--no-banner, --config=.gitleaks.toml]
+        verbose: true
+        # exclude: .secrets.baseline|jenkins-plugins.txt
   - repo: https://github.com/thoughtworks/talisman
     rev: v1.32.0  # Update me!
     hooks:
