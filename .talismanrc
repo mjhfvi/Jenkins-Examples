@@ -1,10 +1,5 @@
+---
 fileignoreconfig:
-- filename: .pre-commit-config.yaml
-  checksum: fef83c42c0096fc0c89cd6204d3dd64c0b5e390ac9f94480df291135cd55cbeb
-- filename: .gitleaks.toml
-  checksum: 81d3d61082521ccf8bab0b154d6c2917c52a481476da262f6d4d690b1866ad04
-- filename: Pipelines/Pipeline_Templates/Pipeline_Build_Docker.xml
-  checksum: 9711c81edd41acc8e9424e2a68a330062331341e7d0d3fe7c8e6b1d78bd7a42e
-- filename: configuration-as-code/jenkins-plugins.txt
-  checksum: 9c16d6921e16d978f1c62811839be90a58b02bb5964e5e43871575c043dd884d
+- filename: api/Pipeline_Build_Docker_config.xml
+  checksum: dce974eeaef8321d53da409037570e80627200c98c5d8d04df0d145644184da4
 version: ""
