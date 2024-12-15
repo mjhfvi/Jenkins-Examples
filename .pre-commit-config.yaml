@@ -5,7 +5,7 @@
 # pre-commit run --all-files --verbose
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -42,12 +42,12 @@ repos:
       - id: remove-tabs
         name: pre-commit-hooks (Lucas-C - useful git hooks)
   - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.5.0
+    rev: v2.7.0
     hooks:
       - id: setup-cfg-fmt
         name: setup-cfg-fmt (apply a consistent format to setup.cfg files)
   - repo: https://github.com/crate-ci/typos
-    rev: v1.18.2
+    rev: v1.27.0
     hooks:
       - id: typos
   # - id: typos-docker
@@ -65,14 +65,14 @@ repos:
   #     - id: jenkinslint
   #       name: jenkinslint (basic Jenkinsfile linter)
   - repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.12.0
+    rev: v3.14.0
     hooks:
       - id: reorder-python-imports
         name: reorder-python-imports (Tool for automatically reordering python imports)
         args: [--py39-plus, --add-import, from __future__ import annotations]
         exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
   - repo: https://github.com/hhatto/autopep8
-    rev: v2.0.4
+    rev: v2.3.1
     hooks:
       - id: autopep8
         name: autopep8 (Style Guide Enforcement)
@@ -84,14 +84,14 @@ repos:
           Dockerfiles)
         stages: [commit]
   - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:  # detect-secrets scan > .secrets.baseline | , '--disable-plugin', 'KeywordDetector'
       - id: detect-secrets
         name: detect-secrets (module for detecting secrets)
         args: ['--baseline', '.secrets.baseline']
         exclude: jenkins-plugins.txt
   - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.18.2
+    rev: v8.21.2
     hooks:
       - id: gitleaks
       # - id: gitleaks-docker
@@ -116,7 +116,7 @@ repos:
 #     name: ggshield (CI environment to detect secrets)
 #     always_run: true
   - repo: https://github.com/norwoodj/helm-docs
-    rev: v1.13.0
+    rev: v1.14.2
     hooks:
       - id: helm-docs
         name: helm-docs (auto-generates documentation from helm charts into markdown
@@ -147,7 +147,7 @@ repos:
   #     - id: jsonnet-lint
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.28.0
+    rev: 0.29.4
     hooks:
       - id: check-github-workflows
         args: ["--verbose"]
